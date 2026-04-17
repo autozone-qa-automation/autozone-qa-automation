@@ -1,0 +1,69 @@
+# ==========================================
+# 1. Credenciales y Entornos (¡CRÍTICO!)
+# ==========================================
+
+config.properties
+.env
+*.env
+
+# ==========================================
+# 2. Maven - Archivos de compilación
+# ==========================================
+
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.restore
+release.properties
+dependency-reduced-pom.xml
+build.log
+
+# ==========================================
+# 3. Selenium, Drivers y Logs
+# ==========================================
+
+drivers/
+*.log
+temp/
+
+# ==========================================
+# 4. Reportes de ejecución (TestNG, Allure, Extent)
+# ==========================================
+
+test-output/
+allure-results/
+allure-report/
+extent-reports/
+Reports/
+
+# ==========================================
+# 5. IDEs (IntelliJ, VS Code, Eclipse)
+# ==========================================
+
+# IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# VS Code
+.vscode/
+.history/
+
+# Eclipse
+.project
+.classpath
+.settings/
+bin/
+
+# ==========================================
+# 6. Sistema Operativo (macOS y Windows)
+# ==========================================
+
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+Desktop.ini

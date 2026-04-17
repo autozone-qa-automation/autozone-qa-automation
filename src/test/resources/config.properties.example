@@ -1,0 +1,21 @@
+
+# ==========================================
+# Autozone-QA - Configuración de Entorno
+# ==========================================
+
+# Navegador a utilizar (chrome, firefox, edge)
+browser=chrome
+
+# URL base de la aplicación (QA, Dev o Prod)
+baseUrl=https://www.ejemplo.com
+
+# Tiempo de espera implícito en segundos
+implicit.wait=10
+
+# Configuración de usuario de prueba (Cámbialo localmente)
+test.user=tu_usuario@ejemplo.com
+test.password=tu_password_seguro
+
+# Headless mode (true para CI/CD, false para ver el navegador)
+headless=false
+
