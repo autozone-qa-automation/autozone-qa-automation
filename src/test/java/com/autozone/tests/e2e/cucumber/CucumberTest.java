@@ -8,5 +8,5 @@ import io.cucumber.testng.CucumberOptions;
     glue = "com.autozone.tests.e2e.cucumber",
     plugin = {"pretty", "summary"}
 )
-public class CucumberTestSuite extends AbstractTestNGCucumberTests {
+public class CucumberTest extends AbstractTestNGCucumberTests {
 }

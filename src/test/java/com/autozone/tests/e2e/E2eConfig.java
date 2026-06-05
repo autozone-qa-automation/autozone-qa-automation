@@ -35,17 +35,22 @@ public final class E2eConfig {
 
     private static Properties loadEnvProperties() {
         Properties properties = new Properties();
-        Path envFilePath = Path.of("env.properties");
-
-        if (Files.exists(envFilePath)) {
-            try (InputStream inputStream = Files.newInputStream(envFilePath)) {
-                properties.load(inputStream);
-            } catch (IOException ignored) {
-                // Keep defaults/fallbacks if local env.properties cannot be read.
-            }
-        }
+        loadPropertiesFile(properties, Path.of(".env.properties"));
+        loadPropertiesFile(properties, Path.of("env.properties"));
 
         return properties;
+    }
+
+    private static void loadPropertiesFile(Properties properties, Path envFilePath) {
+        if (!Files.exists(envFilePath)) {
+            return;
+        }
+
+        try (InputStream inputStream = Files.newInputStream(envFilePath)) {
+            properties.load(inputStream);
+        } catch (IOException ignored) {
+            // Keep defaults/fallbacks if local properties cannot be read.
+        }
     }
 
     private static String normalize(String url) {
@@ -56,4 +61,3 @@ public final class E2eConfig {
         return value != null && !value.trim().isEmpty();
     }
 }
-
