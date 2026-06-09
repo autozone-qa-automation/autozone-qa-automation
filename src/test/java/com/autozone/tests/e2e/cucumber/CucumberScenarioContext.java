@@ -6,8 +6,10 @@ import java.util.Map;
 import org.openqa.selenium.WebDriver;
 
 import com.autozone.tests.e2e.bots.BaseBot;
-import com.autozone.tests.e2e.bots.ServicesBot;
+import com.autozone.tests.e2e.bots.ReleaseIdBot;
+import com.autozone.tests.e2e.bots.ReleasesBot;
 import com.autozone.tests.e2e.bots.ServiceIdBot;
+import com.autozone.tests.e2e.bots.ServicesBot;
 
 public class CucumberScenarioContext {
 
@@ -59,5 +61,14 @@ public class CucumberScenarioContext {
 
     public static ServiceIdBot getServiceIdBot() {
         return getBot(ServiceIdBot.class);
+    }
+
+    // Convenience methods V2 (optional but useful) 
+    public static ReleasesBot getReleasesBot() {
+        return getBot(ReleasesBot.class);
+    }
+
+    public static ReleaseIdBot getReleaseIdBot() {
+        return getBot(ReleaseIdBot.class);
     }
 }
