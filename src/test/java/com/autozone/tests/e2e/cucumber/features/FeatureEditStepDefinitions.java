@@ -1,4 +1,4 @@
-package com.autozone.tests.e2e.cucumber.services;
+package com.autozone.tests.e2e.cucumber.features;
 
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;

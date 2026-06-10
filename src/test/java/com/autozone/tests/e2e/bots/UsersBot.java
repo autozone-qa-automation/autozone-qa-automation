@@ -18,6 +18,10 @@ public class UsersBot extends BaseBot {
 
     private static final By USER_ROWS =
             By.cssSelector("tbody tr");
+    private static final String USERS_PATH = "/users";
+
+    private static final By USER_ROW = By.cssSelector("[data-testid='users-table-row']");
+    private static final By EDIT_BUTTON = By.cssSelector("[data-testid='user-edit-button']");
 
     public UsersBot(WebDriver driver) {
         super(driver);
@@ -43,5 +47,23 @@ public class UsersBot extends BaseBot {
     private List<WebElement> getUserRows() {
         waitUntilUsersListReady();
         return findElements(USER_ROWS);
+    }
+}
+    public void openList() {
+        openPath(USERS_PATH);
+    }
+
+    public void waitUntilListReady() {
+        waitForPresence(USER_ROW);
+    }
+
+    public void openEditForFirstUser() {
+        List<WebElement> rows = waitForAllPresent(USER_ROW);
+        rows.get(0).findElement(EDIT_BUTTON).click();
+    }
+
+    public String getFirstUserRowText() {
+        List<WebElement> rows = waitForAllPresent(USER_ROW);
+        return rows.get(0).getText();
     }
 }
