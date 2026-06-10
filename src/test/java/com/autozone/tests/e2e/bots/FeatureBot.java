@@ -16,6 +16,10 @@ public class FeatureBot extends BaseBot {
     private static final By DESCRIPTION_INPUT = By.cssSelector("[data-testid='feature-edit-description-input']");
     private static final By SAVE_BUTTON = By.cssSelector("[data-testid='feature-edit-save-button']");
     private static final By SUCCESS_NOTIFICATION = By.xpath("//*[contains(normalize-space(.), 'Feature updated successfully')]");
+    private static final By DELETE_BUTTON = By.cssSelector("[data-testid='feature-detail-delete-trigger-button']");
+    private static final By DELETE_MODAL = By.cssSelector("[data-testid='feature-delete-modal-message']");
+    private static final By DELETE_CONFIRM_BUTTON = By.cssSelector("[data-testid='feature-delete-modal-confirm-button']");
+    private static final By CANCEL_DELETE_BUTTON = By.cssSelector("[data-testid='feature-delete-modal-cancel-button']");
 
     public FeatureBot(WebDriver driver) {
         super(driver);
@@ -89,5 +93,22 @@ public class FeatureBot extends BaseBot {
 
     public String getFeatureDescription() {
         return waitForPresence(FEATURE_DESCRIPTION_TEXT).getText();
+    }
+
+    public void openDeleteModal() {
+        waitForPresence(DELETE_BUTTON).click();
+        waitForPresence(DELETE_MODAL);
+    }
+
+    public boolean isDeleteModalVisible() {
+        return !findElements(DELETE_MODAL).isEmpty();
+    }
+
+    public void confirmDelete() {
+        waitForPresence(DELETE_CONFIRM_BUTTON).click();
+    }
+
+    public void cancelDelete() {
+        waitForPresence(CANCEL_DELETE_BUTTON).click();
     }
 }
