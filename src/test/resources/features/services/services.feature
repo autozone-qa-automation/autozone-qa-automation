@@ -33,3 +33,16 @@ Feature: Services
     Scenario: Service details page with no features
         Given the user opens the service details page for 2 service with no features
         Then the service features empty message should be displayed
+
+    @services @delete
+    Scenario: Delete service
+        Given the user opens an existing service
+        When the user deletes the service
+        Then the user should be redirected to the services list page
+
+    @services @delete @cancel
+    Scenario: Cancel service deletion
+    Given the user opens an existing service
+    When the user cancels the service deletion
+    Then the service should not be deleted
+    And the user should remain on the service details page

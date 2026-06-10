@@ -21,6 +21,8 @@ public class ServiceIdBot extends BaseBot {
 
     private static final By EDIT_BUTTON = By.cssSelector("[data-testid='service-id-edit-button']");
     private static final By DELETE_BUTTON = By.cssSelector("[data-testid='service-id-delete-button']");
+    private static final By DELETE_CONFIRM_BUTTON = By.cssSelector("[data-testid='delete-service-confirm-btn']");
+    private static final By DELETE_CANCEL_BUTTON =By.cssSelector("[data-testid='delete-service-cancel-btn']");
     private static final By ADD_FEATURE_BUTTON = By.cssSelector("[data-testid='service-id-add-feature-button']");
 
     private static final By FEATURE_OPEN_BUTTONS = By.cssSelector("[data-testid^='service-id-feature-open-button-']");
@@ -59,6 +61,22 @@ public class ServiceIdBot extends BaseBot {
     public boolean isDeleteButtonVisible() {
         return findElements(DELETE_BUTTON).size() > 0;
     }
+
+    public void confirmDeleteService() {
+        waitForPresence(DELETE_BUTTON).click();
+        waitForPresence(DELETE_CONFIRM_BUTTON).click();
+    }
+
+    public void cancelDeleteService() {
+        waitForPresence(DELETE_BUTTON).click();
+        waitForPresence(DELETE_CANCEL_BUTTON).click();
+    }
+
+    public boolean isStillOnServicePage() {
+    return wait.until(driver ->
+            driver.getCurrentUrl().contains("/services/")
+    );
+}
 
     public boolean isAddFeatureButtonVisible() {
         return findElements(ADD_FEATURE_BUTTON).size() > 0;
@@ -114,4 +132,9 @@ public class ServiceIdBot extends BaseBot {
         return waitForPresence(LAST_RELEASES_EMPTY_MESSAGE).isDisplayed();
     }
 
+    public boolean waitUntilServicesListPage() {
+        return wait.until(driver ->
+                driver.getCurrentUrl().endsWith("/services")
+        );
+    }
 }
