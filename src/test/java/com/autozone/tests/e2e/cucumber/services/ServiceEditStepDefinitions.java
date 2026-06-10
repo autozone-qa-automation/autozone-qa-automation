@@ -72,8 +72,8 @@ public class ServiceEditStepDefinitions {
 
     @Then("the service edit modal should be closed")
     public void theServiceEditModalShouldBeClosed() {
-        assertFalse(
-                CucumberScenarioContext.getServiceEditBot().isModalVisible(),
+        assertTrue(
+                CucumberScenarioContext.getServiceEditBot().waitForModalToClose(),
                 "Expected the service edit modal to be closed"
         );
     }

@@ -5,7 +5,7 @@ Feature: Service edit
 
     @services @edit @success
     Scenario: Successful update of service name and description
-        Given the user navigates to service details page for 1
+        Given the user navigates to service details page for 2
         When the user opens the service edit modal
         And the user updates the service name to "QA Automation Service"
         And the user updates the service description to "Updated by automation test"
@@ -16,7 +16,7 @@ Feature: Service edit
 
     @services @edit @validation
     Scenario: Service update fails when name is empty
-        Given the user navigates to service details page for 1
+        Given the user navigates to service details page for 2
         When the user opens the service edit modal
         And the user clears the service name field
         And the user saves the service changes
@@ -24,7 +24,7 @@ Feature: Service edit
 
     @services @edit @cancel
     Scenario: Service edit modal closes when cancelled
-        Given the user navigates to service details page for 1
+        Given the user navigates to service details page for 2
         When the user opens the service edit modal
         And the user updates the service name to "This should not be saved"
         And the user cancels the service edit

@@ -84,7 +84,8 @@ public class ServiceIdBot extends BaseBot {
 
     public void waitUntilFeaturesReady() {
         wait.until(driver ->
-                driver.findElements(FEATURE_OPEN_BUTTONS).size() > 0 
+                driver.findElements(FEATURE_OPEN_BUTTONS).size() > 0
+                || driver.findElements(FEATURES_EMPTY_MESSAGE).size() > 0
         );
     }
 
