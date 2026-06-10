@@ -106,9 +106,11 @@ public class FeatureBot extends BaseBot {
 
     public void confirmDelete() {
         waitForPresence(DELETE_CONFIRM_BUTTON).click();
+        wait.until(d -> d.findElements(DELETE_MODAL).isEmpty());
     }
 
     public void cancelDelete() {
         waitForPresence(CANCEL_DELETE_BUTTON).click();
+        wait.until(d -> d.findElements(DELETE_MODAL).isEmpty());
     }
 }

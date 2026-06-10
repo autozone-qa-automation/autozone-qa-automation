@@ -16,6 +16,6 @@ Feature: Feature delete
         Given the user opens the feature details page for 1
         When the user opens the delete feature modal
         And the user clicks Cancel
-        Then the user is redirected to the features page
+        Then the modal is closed and the user is kept on the feature details page
 
 

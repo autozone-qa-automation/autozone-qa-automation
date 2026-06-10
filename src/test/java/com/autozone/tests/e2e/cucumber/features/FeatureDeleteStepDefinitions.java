@@ -27,7 +27,18 @@ public class FeatureDeleteStepDefinitions {
     }
     @Then("the user is redirected to the features page")
     public void theUserIsRedirectedToTheFeaturesPage() {
-        FeatureBot featureBot = CucumberScenarioContext.getFeatureBot();
-        assertTrue(featureBot.isPageVisible(), "Expected feature details page to be visible");
+        org.openqa.selenium.WebDriver driver = CucumberScenarioContext.getDriver();
+         boolean redirected = new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(15))
+                 .until(d -> {
+                     String url = d.getCurrentUrl();
+                     return url.endsWith("/features") || url.endsWith("/features/");
+                 });
+         assertTrue(redirected, "Expected to be redirected to the features list page");
     }
+    @Then("the modal is closed and the user is kept on the feature details page")
+    public void theModalIsClosedAndTheUserIsKeptOnTheFeatureDetailsPage() {
+        FeatureBot featureBot = CucumberScenarioContext.getFeatureBot();
+        assertTrue(featureBot.isPageVisible(), "Expected to still be on the feature details page");
+    }
+
 }
