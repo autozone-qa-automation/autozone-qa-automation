@@ -8,6 +8,8 @@ import org.openqa.selenium.WebDriver;
 import com.autozone.tests.e2e.bots.BaseBot;
 import com.autozone.tests.e2e.bots.FeatureBot;
 import com.autozone.tests.e2e.bots.LoginBot;
+import com.autozone.tests.e2e.bots.ReleaseDeleteBot;
+import com.autozone.tests.e2e.bots.ReleasesBot;
 import com.autozone.tests.e2e.bots.ServiceIdBot;
 import com.autozone.tests.e2e.bots.ServicesBot;
 import com.autozone.tests.e2e.bots.TestCasesBot;
@@ -89,5 +91,13 @@ public class CucumberScenarioContext {
 
     public static UserEditBot getUserEditBot() {
         return getBot(UserEditBot.class);
+    }
+
+    public static ReleasesBot getReleasesBot() {
+        return getBot(ReleasesBot.class);
+    }
+
+    public static ReleaseDeleteBot getReleaseDeleteBot() {
+        return getBot(ReleaseDeleteBot.class);
     }
 }
