@@ -30,3 +30,10 @@ Feature: Test Cases
         When the user selects a test case to edit
         And the user modifies the test case but cancels
         Then the changes should not be saved
+
+    @testcases @view
+    Scenario: Read Testcases Details
+        Given the user opens the test cases list page
+        Then test cases should be listed
+        When the user clicks the first view button
+        Then the test case modal should be visible
