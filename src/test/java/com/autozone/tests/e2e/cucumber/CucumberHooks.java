@@ -1,7 +1,6 @@
 package com.autozone.tests.e2e.cucumber;
 
 import org.openqa.selenium.WebDriver;
-
 import com.autozone.tests.e2e.support.DriverFactory;
 import com.autozone.tests.e2e.support.E2eTestCredentials;
 
@@ -10,6 +9,7 @@ import io.cucumber.java.Before;
 import io.cucumber.java.Scenario;
 
 public class CucumberHooks {
+
     @Before
     public void beforeScenario(Scenario scenario) {
         WebDriver driver = DriverFactory.createChromeDriver();
@@ -33,9 +33,7 @@ public class CucumberHooks {
         try {
             driver = CucumberScenarioContext.getDriver();
         } catch (IllegalStateException ignored) {
-            // No driver was set, so we can ignore this exception
         }
-
         try {
             if (driver != null) {
                 driver.quit();

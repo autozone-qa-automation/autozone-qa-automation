@@ -6,7 +6,7 @@ import io.cucumber.testng.CucumberOptions;
 @CucumberOptions(
     features = "src/test/resources/features",
     glue = "com.autozone.tests.e2e.cucumber",
-    plugin = {"pretty", "summary"}
+    plugin = {"pretty", "summary", "html:target/cucumber-report.html"}
 )
 public class CucumberTest extends AbstractTestNGCucumberTests {
 }

@@ -26,6 +26,8 @@ import com.autozone.tests.e2e.bots.UserCreateBot;
 import com.autozone.tests.e2e.bots.UserDeleteBot;
 import com.autozone.tests.e2e.bots.UserEditBot;
 import com.autozone.tests.e2e.bots.UsersBot;
+import com.autozone.tests.e2e.bots.FeaturesBot;
+import com.autozone.tests.e2e.bots.FeatureDetailBot;
 
 public class CucumberScenarioContext {
 
@@ -69,7 +71,6 @@ public class CucumberScenarioContext {
         DRIVER.remove();
     }
 
-    // Convenience methods (optional but useful)
     public static ServicesBot getServicesBot() {
         return getBot(ServicesBot.class);
     }
@@ -84,6 +85,14 @@ public class CucumberScenarioContext {
 
     public static FeatureBot getFeatureBot() {
         return getBot(FeatureBot.class);
+    }
+
+    public static FeaturesBot getFeaturesBot() {
+        return getBot(FeaturesBot.class);
+    }
+
+    public static FeatureDetailBot getFeatureDetailBot() {
+        return getBot(FeatureDetailBot.class);
     }
 
     public static TestCasesBot getTestCasesBot() {
