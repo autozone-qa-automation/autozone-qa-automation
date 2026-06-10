@@ -7,7 +7,6 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-
 import static org.testng.Assert.fail;
 
 //import com.autozone.tests.e2e.E2eConfig;
@@ -24,7 +23,13 @@ public class ServicesBot extends BaseBot {
     private static final By ADD_SERVICE_BUTTON = By.cssSelector("[data-testid='add-service-button']");
     private static final By ADD_SERVICE_CARD = By.cssSelector("[data-testid='add-service-card']");
     private static final By SERVICE_CARDS = By.cssSelector("[data-testid^='service-card-']:not([data-testid^='service-card-title-'])");
-    
+    private static final By CREATE_SERVICE_FORM = By.cssSelector("[data-testid='service-create-form']");
+    private static final By SERVICE_NAME_INPUT = By.cssSelector("[data-testid='service-name-input']");
+    private static final By URL_NAME_INPUT = By.cssSelector("[data-testid='url-nombre-0']");
+    private static final By URL_INPUT = By.cssSelector("[data-testid='url-url-0']");
+    private static final By SUBMIT_SERVICE_BUTTON = By.cssSelector("[data-testid='service-submit-btn']");
+    private static final By SERVICE_DESCRIPTION_INPUT = By.cssSelector("[data-testid='service-description-input']");
+
     public ServicesBot(WebDriver driver) {
         super(driver);
     }
@@ -53,6 +58,49 @@ public class ServicesBot extends BaseBot {
         return waitForPresence(ADD_SERVICE_CARD).isDisplayed();
     }
 
+    public void openCreateServiceModal() {
+
+        wait.until(driver ->
+            !driver.findElements(ADD_SERVICE_CARD).isEmpty()
+        );
+
+        waitForPresence(ADD_SERVICE_CARD).click();
+
+        wait.until(driver ->
+            !driver.findElements(CREATE_SERVICE_FORM).isEmpty()
+        );
+    }
+
+    public boolean isCreateServiceFormVisible() {
+        return waitForPresence(CREATE_SERVICE_FORM).isDisplayed();
+    }
+
+    public void enterServiceName(String name) {
+        waitForPresence(SERVICE_NAME_INPUT).sendKeys(name);
+    }
+
+    public void enterUrlName(String urlName) {
+        waitForPresence(URL_NAME_INPUT).sendKeys(urlName);
+    }
+
+    public void enterUrl(String url) {
+        waitForPresence(URL_INPUT).sendKeys(url);
+    }
+
+    public void submitCreateService() {
+        waitForPresence(SUBMIT_SERVICE_BUTTON).click();
+    }
+
+    public void enterServiceDescription(String description) {
+        waitForPresence(SERVICE_DESCRIPTION_INPUT).sendKeys(description);
+    }
+
+    public boolean serviceCardContainsText(String serviceName, String text) {
+        return findElements(SERVICE_CARDS).stream()
+                .filter(card -> card.getText().contains(serviceName))
+                .anyMatch(card -> card.getText().contains(text));
+    }
+        
     public void waitUntilListReady() {
         waitForPresence(SERVICE_CARDS);
         wait.until(webDriver -> !webDriver.findElements(SERVICE_CARDS).isEmpty());
@@ -111,5 +159,14 @@ public class ServicesBot extends BaseBot {
             );
             return null;
         }
+    }
+
+    public void openServiceByName(String name) {
+        WebElement card = getServiceCards().stream()
+            .filter(c -> c.getText().contains(name))
+            .findFirst()
+            .orElseThrow();
+
+        card.click();
     }
 }
