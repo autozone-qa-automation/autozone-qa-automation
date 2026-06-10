@@ -96,3 +96,16 @@ Feature: Services
     And the user saves the service
     Then the system displays "Name must be at least 2 characters"
     And the service "Servicio de prueba" should not be displayed in the list
+    
+  @services @delete
+  Scenario: Delete service
+      Given the user opens an existing service
+      When the user deletes the service
+      Then the user should be redirected to the services list page
+
+  @services @delete @cancel
+  Scenario: Cancel service deletion
+  Given the user opens an existing service
+  When the user cancels the service deletion
+  Then the service should not be deleted
+  And the user should remain on the service details page

@@ -136,6 +136,71 @@ public class ServicesStepDefinitions {
         assertTrue(CucumberScenarioContext.getServiceIdBot().isFeaturesEmptyMessageVisible(), "Expected features empty message to be visible");
     }
 
+    @Given("the user opens an existing service")
+    public void theUserOpensAnExistingService() {
+
+        ServicesBot servicesBot =
+                CucumberScenarioContext.getServicesBot();
+
+        servicesBot.openList();
+        servicesBot.waitUntilListReady();
+
+        List<String> serviceIds =
+                servicesBot.getListedServiceIds();
+
+        assertTrue(
+                !serviceIds.isEmpty(),
+                "Expected at least one service"
+        );
+
+        servicesBot.openServiceDetails(serviceIds.get(0));
+    }
+
+    @When("the user deletes the service")
+    public void theUserDeletesTheService() {
+        CucumberScenarioContext
+                .getServiceIdBot()
+                .confirmDeleteService();
+    }
+
+    @Then("the user should be redirected to the services list page")
+    public void theUserShouldBeRedirectedToTheServicesListPage() {
+
+        assertTrue(
+                CucumberScenarioContext
+                        .getServiceIdBot()
+                        .waitUntilServicesListPage(),
+                "Expected to be redirected to services list page"
+        );
+    }
+
+    @When("the user cancels the service deletion")
+    public void theUserCancelsTheServiceDeletion() {
+        CucumberScenarioContext
+                .getServiceIdBot()
+                .cancelDeleteService();
+    }
+
+    @Then("the service should not be deleted")
+    public void theServiceShouldNotBeDeleted() {
+        assertTrue(
+                CucumberScenarioContext
+                        .getServiceIdBot()
+                        .isStillOnServicePage(),
+                "Expected to remain on the service details page"
+        );
+    }
+
+    @And("the user should remain on the service details page")
+    public void theUserShouldRemainOnTheServiceDetailsPage() {
+        assertTrue(
+                CucumberScenarioContext
+                        .getServiceIdBot()
+                        .isStillOnServicePage(),
+                "Expected to remain on the service details page"
+        );
+    }
+
     @When("the user opens the create service modal")
     public void theUserOpensTheCreateServiceModal() {
         CucumberScenarioContext.getServicesBot().openCreateServiceModal();
