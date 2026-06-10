@@ -1,11 +1,16 @@
 package com.autozone.tests.e2e.cucumber.services;
 
+import java.time.Duration;
 import java.util.List;
 
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import static org.testng.Assert.assertTrue;
 
-import com.autozone.tests.e2e.bots.ServicesBot;
 import com.autozone.tests.e2e.bots.ServiceIdBot;
+import com.autozone.tests.e2e.bots.ServicesBot;
 import com.autozone.tests.e2e.cucumber.CucumberScenarioContext;
 
 import io.cucumber.java.en.And;
@@ -18,7 +23,7 @@ public class ServicesStepDefinitions {
     @Given("the user opens the services list page")
     public void theUserOpensTheServicesListPage() {
         CucumberScenarioContext.getServicesBot().openList();
-        CucumberScenarioContext.getServicesBot().waitUntilListReady();
+        //CucumberScenarioContext.getServicesBot().waitUntilListReady();
         //porque no funciona console log
 
     }
@@ -131,4 +136,95 @@ public class ServicesStepDefinitions {
         assertTrue(CucumberScenarioContext.getServiceIdBot().isFeaturesEmptyMessageVisible(), "Expected features empty message to be visible");
     }
 
+    @When("the user opens the create service modal")
+    public void theUserOpensTheCreateServiceModal() {
+        CucumberScenarioContext.getServicesBot().openCreateServiceModal();
+    }
+
+    @Then("the create service form is displayed")
+    public void theCreateServiceFormIsDisplayed() {
+        assertTrue(
+                CucumberScenarioContext.getServicesBot().isCreateServiceFormVisible(),
+                "Expected create service form to be visible"
+        );
+    }
+    @And("the user is on the home page")
+    public void userIsOnHomePage() {
+
+        WebDriver driver = CucumberScenarioContext.getDriver();
+
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+
+        wait.until(ExpectedConditions.visibilityOfElementLocated(
+            By.cssSelector("[data-testid='sidebar']")
+        ));
+    }
+
+    @And("the user enters service name {string}")
+    public void theUserEntersServiceName(String name) {
+        CucumberScenarioContext.getServicesBot().enterServiceName(name);
+    }
+
+    @And("the user enters service description {string}")
+    public void theUserEntersServiceDescription(String description) {
+        CucumberScenarioContext.getServicesBot().enterServiceDescription(description);
+    }
+
+    @And("the user enters URL name {string}")
+    public void theUserEntersUrlName(String urlName) {
+        CucumberScenarioContext.getServicesBot().enterUrlName(urlName);
+    }
+
+    @And("the user enters URL {string}")
+    public void theUserEntersUrl(String url) {
+        CucumberScenarioContext.getServicesBot().enterUrl(url);
+    }
+
+    @And("the user saves the service")
+    public void theUserSavesTheService() {
+        CucumberScenarioContext.getServicesBot().submitCreateService();
+    }
+
+    @Then("the service system displays {string}")
+    public void theServiceSystemDisplays(String message) {
+        assertTrue(
+            CucumberScenarioContext.getServicesBot()
+                .serviceCardContainsText("Payment Gateway", message),
+            "Expected service message: " + message
+        );
+    }
+
+    @And("the user leaves service description empty")
+    public void theUserLeavesServiceDescriptionEmpty() {
+        CucumberScenarioContext.getServicesBot().enterServiceDescription("");
+    }
+
+    @Then("the service description default message is shown")
+    public void validateDefaultDescription() {
+        CucumberScenarioContext.getServicesBot()
+            .openServiceByName("Payment Gateway");
+
+        String pageText = CucumberScenarioContext.getDriver()
+            .findElement(By.tagName("body"))
+            .getText();
+
+        assertTrue(pageText.contains("No description provided for Payment Gateway"));
+    }
+
+    @When("the user leaves the service name empty")
+    public void theUserLeavesTheServiceNameEmpty() {
+        CucumberScenarioContext.getServicesBot().enterServiceName("");
+    }
+
+    @Then("the service {string} should not be displayed in the list")
+    public void theServiceShouldNotBeDisplayedInTheList(String name) {
+        boolean exists = CucumberScenarioContext.getServicesBot()
+                .isServiceListed(name);
+
+        assertTrue(
+            !exists,
+            "Expected service NOT to be visible: " + name
+        );
+    }
+    
 }
