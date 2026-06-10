@@ -30,3 +30,19 @@ Feature: Test Cases
         When the user selects a test case to edit
         And the user modifies the test case but cancels
         Then the changes should not be saved
+
+    @testcases @create @success
+    Scenario: Create Test Case successfully
+        Given the user opens the test cases list page
+        When the user opens the create test case modal
+        And the user fills the create test case form with valid data
+        And the user submits the create test case form
+        Then the test case should be created successfully
+
+    @testcases @create @validation
+    Scenario: Required fields validation when creating a test case
+        Given the user opens the test cases list page
+        When the user opens the create test case modal
+        And the user leaves required create test case fields empty
+        And the user submits the create test case form
+        Then the system should prevent creating the test case
