@@ -14,6 +14,9 @@ public final class IntegrationContext {
 
   private static String token;
   private static ApiResponse lastResponse;
+  private static long existingServiceId;
+  private static String existingServiceName;
+  private static Long fallbackCreatedServiceId;
 
   private IntegrationContext() {}
 
@@ -31,5 +34,35 @@ public final class IntegrationContext {
 
   public static void setLastResponse(ApiResponse value) {
     lastResponse = value;
+  }
+
+  /** The id of the service resolved by the "an existing service from the services list" step. */
+  public static long getExistingServiceId() {
+    return existingServiceId;
+  }
+
+  public static void setExistingServiceId(long value) {
+    existingServiceId = value;
+  }
+
+  /** The name of the service resolved by the "an existing service from the services list" step. */
+  public static String getExistingServiceName() {
+    return existingServiceName;
+  }
+
+  public static void setExistingServiceName(String value) {
+    existingServiceName = value;
+  }
+
+  /**
+   * The id of a service created as a fallback by "an existing service from the services list"
+   * (when no service existed yet), or {@code null} if an existing service was reused.
+   */
+  public static Long getFallbackCreatedServiceId() {
+    return fallbackCreatedServiceId;
+  }
+
+  public static void setFallbackCreatedServiceId(Long value) {
+    fallbackCreatedServiceId = value;
   }
 }

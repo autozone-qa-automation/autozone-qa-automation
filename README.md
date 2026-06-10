@@ -92,16 +92,33 @@ src/test/java/com/autozone/integration/
 ├── config/IntegrationConfig.java       # Resolución de configuración (ver abajo)
 ├── client/ApiResponse.java             # statusCode + contentType + body
 ├── client/ServicesApiClient.java       # Cliente HTTP para /api/v1/services
+├── client/FeaturesApiClient.java       # Cliente HTTP para /api/v1/features
+├── client/TestCasesApiClient.java      # Cliente HTTP para /api/v1/test-cases
+├── client/ReleasesApiClient.java       # Cliente HTTP para /api/v1/releases
+├── client/ReportsApiClient.java        # Cliente HTTP para /api/v1/reports (incluye export CSV)
 └── cucumber/
     ├── IntegrationCucumberTestSuite.java
-    └── services/ServicesIntegrationStepDefinitions.java
+    ├── support/BackgroundStepDefinitions.java   # Steps compartidos (login, dispatchers genéricos, asserts)
+    ├── support/IntegrationContext.java          # Holder estático: token, último ApiResponse, fixtures compartidas
+    ├── services/ServicesIntegrationStepDefinitions.java
+    ├── features/FeaturesIntegrationStepDefinitions.java
+    ├── testcases/TestCasesIntegrationStepDefinitions.java
+    ├── releases/ReleasesIntegrationStepDefinitions.java
+    ├── reports/ReportsIntegrationStepDefinitions.java
+    └── lifecycle/LifecycleIntegrationStepDefinitions.java
 
-src/test/resources/features/integration/services/
-├── services-list.feature
-├── services-get.feature
-├── services-test-endpoint.feature
-├── services-crud.feature
-└── services-validation.feature
+src/test/resources/features/integration/
+├── services/
+│   ├── services-list.feature
+│   ├── services-get.feature
+│   ├── services-test-endpoint.feature
+│   ├── services-crud.feature
+│   └── services-validation.feature
+├── features/features.feature
+├── test-cases/test-cases.feature
+├── releases/releases.feature
+├── reports/reports.feature
+└── lifecycle/lifecycle.feature
 ```
 
 ### Configuración (`IntegrationConfig`)
@@ -181,6 +198,108 @@ base de datos.
     delete → get 404).
   - `services-validation.feature`: `POST /api/v1/services` devuelve 400 con
     `name = null` y 409 con un nombre duplicado.
+
+- **Features API**: list / create / get / filter por servicio / update / deactivate
+  - `features.feature`:
+    - `GET /api/v1/features` devuelve 200 y un arreglo de features, cada uno
+      con `id`, `featureName`, `featureDescription` e `idService`.
+    - Ciclo de vida completo: create (echo de `featureName`/`featureDescription`/
+      `idService`, incluye `serviceName` e `id` generado) → get by id → filtrar
+      por `idService` vía `GET /api/v1/features/filtered/{serviceId}` → update
+      de nombre/descripción (el `idService` no cambia).
+    - ⚠️ **Known quirk**: actualizar una feature reutilizando el `featureName`
+      de otra feature existente devuelve **500** (no 409).
+    - Desactivar una feature devuelve **200 con body vacío**, y un `GET`
+      posterior por ese id devuelve 404.
+    - `GET`, filtrar por servicio y desactivar con ids inexistentes devuelven
+      404 (`/api/v1/features/999999999`,
+      `/api/v1/features/filtered/999999999`,
+      deactivate `999999999`).
+    - Crear una feature con `featureName = null` devuelve 400.
+    - Crear una feature para un `idService` inexistente devuelve 404.
+
+- **Test Cases API**: list / create / get / filter por feature / update / deactivate
+  - `test-cases.feature`:
+    - `GET /api/v1/test-cases` devuelve 200 y un arreglo de test cases, cada
+      uno con `id`, `title`, `relatedFeature`, `type`, `steps`,
+      `expectedOutput` y la bandera `active`.
+    - Ciclo de vida completo: create (echo de `title`/`type`/`steps`/
+      `expectedOutput`/`relatedFeature`, `active = true` e `id` generado) →
+      get by id (`featureName` es `null` en el detalle individual) → listar
+      por feature → update de `title`/`steps`/`expectedOutput`.
+    - Listar todos los test cases sí incluye `featureName` poblado para los
+      test cases creados.
+    - Crear un test case con `title = null` devuelve 400.
+    - Crear un test case con un `title` duplicado (misma feature) devuelve
+      409.
+    - Actualizar un test case enviando un `id` distinto en el body devuelve
+      400.
+    - Actualizar un test case reutilizando el `title` de otro test case de la
+      misma feature devuelve 409.
+    - Desactivar un test case devuelve **204 con body vacío**, y un `GET`
+      posterior por ese id devuelve 404.
+    - Desactivar y obtener un test case con id inexistente devuelven 404.
+
+- **Releases API**: list / "last releases" / create / get / filtrar por status
+  o tag / transiciones de estado / delete
+  - `releases.feature`:
+    - `GET /api/v1/releases` devuelve 200 y un arreglo de releases, cada uno
+      con `releaseId`, `releaseName`, `releaseDescription`, `releaseVersion`,
+      `releaseStatus`, `releaseTags`, `releaseCreationDate` y la bandera
+      `releaseIsActive`.
+    - `GET /api/v1/releases/last` devuelve 200 y un arreglo.
+    - Ciclo de vida completo de un release `Draft`: create (echo de
+      `releaseName`/`releaseDescription`/`releaseVersion`/`releaseStatus`/
+      `releaseTags`, `releaseIsActive = true` e `id` generado) → get by id →
+      filtrar por `status=Draft`.
+    - Filtrar por `tag` devuelve los releases que tengan ese tag.
+    - `GET /api/v1/releases/999999999` devuelve **404 con body vacío**.
+    - Transiciones de estado válidas (`Draft → Progress → Active`) devuelven
+      200 con `releaseStatus` actualizado, pero un release que no está en
+      `Draft` **no puede eliminarse** (`DELETE` devuelve 400 con un mensaje
+      que contiene `"DRAFT"`).
+    - ⚠️ **Known quirk**: una transición de estado inválida (p. ej.
+      `Active → Draft`) devuelve **400 con body en texto plano** que contiene
+      `"Invalid status transition"`.
+    - ⚠️ **Known quirk**: enviar un valor de `releaseStatus` que no es un
+      enum válido (p. ej. `"NotARealStatus"`) devuelve **400 con body JSON**
+      que contiene el valor inválido.
+    - Actualizar el status de un release inexistente devuelve **404 con body
+      en texto plano** que contiene el id solicitado.
+    - Eliminar un release inexistente devuelve **404 con body JSON**.
+    - Crear un release con `releaseName = null` devuelve 400.
+
+- **Reports API** (solo lectura: list + export CSV)
+  - `reports.feature`:
+    - `GET /api/v1/reports` devuelve 200 y un arreglo de reportes, cada uno
+      con `releaseId`, `releaseName`, `releaseDescription`, `releaseVersion`,
+      `releaseStatus`, `releaseTags`, `releaseCreationDate`,
+      `releaseLaunchDate` y un arreglo `services` (cada `service` contiene
+      `serviceName` y un arreglo `features`, cada `feature` contiene
+      `featureName` y un arreglo `testCases` con los títulos de los test
+      cases activos).
+    - Filtrar por `serviceId` o `tagName` inexistentes devuelve 200 con un
+      arreglo vacío (`[]`).
+    - `GET /api/v1/reports/export?releaseIds=1,2,3` devuelve 200,
+      `Content-Type: text/csv` y un CSV (con BOM UTF-8) cuya primera fila es
+      `Versión del release;Nombre del release;...`.
+    - ⚠️ **Known quirk**: exportar con `releaseIds=` (parámetro presente pero
+      vacío) devuelve **200 con body vacío** (no es un error).
+    - ⚠️ **Known quirk**: exportar **sin** el parámetro `releaseIds` devuelve
+      **500 con body JSON** (`"An unexpected error occurred"`), porque el
+      `GlobalExceptionHandler` captura la
+      `MissingServletRequestParameterException` con su handler genérico de
+      `Exception`.
+
+- **Lifecycle** (`@lifecycle`): flujo completo end-to-end
+  - `lifecycle.feature`: crea un Service → Feature → Test Case → release
+    `Draft` (asociando la feature vía `releaseFeatureIds`) → transiciona el
+    release a `Progress` y luego a `Active` → confirma que
+    `GET /api/v1/reports?tagName=...` devuelve ese release con el service, la
+    feature y el test case en su jerarquía → confirma que el export CSV de
+    ese release contiene los nombres de las cuatro entidades creadas.
+    Limpia los recursos creados al final (deactivate test case → deactivate
+    feature → soft-delete del service).
 
 ---
 

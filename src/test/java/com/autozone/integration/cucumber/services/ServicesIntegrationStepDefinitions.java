@@ -1,6 +1,5 @@
 package com.autozone.integration.cucumber.services;
 
-import com.autozone.integration.client.ApiResponse;
 import com.autozone.integration.client.ServicesApiClient;
 import com.autozone.integration.config.IntegrationConfig;
 import com.autozone.integration.cucumber.support.IntegrationContext;
@@ -8,9 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.cucumber.java.After;
 import io.cucumber.java.Before;
-import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import java.io.IOException;
@@ -18,8 +15,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Step definitions for the {@code @services} integration features.
@@ -31,17 +26,9 @@ import java.util.regex.Pattern;
  */
 public class ServicesIntegrationStepDefinitions {
 
-  private static final Pattern SERVICE_BY_ID_PATH = Pattern.compile("^/api/v1/services/(\\d+)$");
-  private static final Pattern TEST_SERVICE_PATH = Pattern.compile("^/api/v1/services/test/(\\d+)$");
-
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   private ServicesApiClient apiClient;
-
-  // services-get / services-validation: an existing service fetched (or created) for reuse
-  private long existingServiceId;
-  private String existingServiceName;
-  private Long fallbackCreatedServiceId;
 
   // services-crud: state for the create/read/update/delete lifecycle
   private String createdServiceName;
@@ -56,41 +43,9 @@ public class ServicesIntegrationStepDefinitions {
     apiClient = new ServicesApiClient(IntegrationConfig.getBaseUrl());
   }
 
-  @After
-  public void cleanUpFallbackCreatedService() throws IOException, InterruptedException {
-    if (fallbackCreatedServiceId != null) {
-      apiClient.deleteService(IntegrationContext.getToken(), fallbackCreatedServiceId);
-      fallbackCreatedServiceId = null;
-    }
-  }
-
   // ---------------------------------------------------------------------
   // services-list.feature
   // ---------------------------------------------------------------------
-
-  @When("the client sends a GET request to {string}")
-  public void theClientSendsAGetRequestTo(String path) throws IOException, InterruptedException {
-    if ("/api/v1/services".equals(path)) {
-      IntegrationContext.setLastResponse(apiClient.getServices(IntegrationContext.getToken()));
-      return;
-    }
-
-    Matcher testMatcher = TEST_SERVICE_PATH.matcher(path);
-    if (testMatcher.matches()) {
-      IntegrationContext.setLastResponse(
-          apiClient.getTestService(IntegrationContext.getToken(), Long.parseLong(testMatcher.group(1))));
-      return;
-    }
-
-    Matcher idMatcher = SERVICE_BY_ID_PATH.matcher(path);
-    if (idMatcher.matches()) {
-      IntegrationContext.setLastResponse(
-          apiClient.getServiceById(IntegrationContext.getToken(), Long.parseLong(idMatcher.group(1))));
-      return;
-    }
-
-    throw new IllegalArgumentException("Unsupported path for generic GET step: " + path);
-  }
 
   @Then("each service in the response should have an \"id\", a \"name\", an \"isActive\" flag and a \"urls\" array")
   public void eachServiceShouldHaveExpectedFields() throws IOException {
@@ -109,36 +64,10 @@ public class ServicesIntegrationStepDefinitions {
   // services-get.feature / services-validation.feature
   // ---------------------------------------------------------------------
 
-  @Given("an existing service from the services list")
-  public void anExistingServiceFromTheServicesList() throws IOException, InterruptedException {
-    ApiResponse response = apiClient.getServices(IntegrationContext.getToken());
-    assertEquals(200, response.getStatusCode(), "Could not list services. Body: " + response.getBody());
-
-    JsonNode services = readTree(response.getBody());
-    if (services.size() > 0) {
-      JsonNode first = services.get(0);
-      existingServiceId = first.get("id").asLong();
-      existingServiceName = first.get("name").asText();
-      return;
-    }
-
-    // No services exist yet - create one so the scenario has data to work with.
-    String name = "QA Fallback Service " + UUID.randomUUID();
-    ApiResponse created =
-        apiClient.createService(
-            IntegrationContext.getToken(),
-            buildServiceJson(name, "Fallback service for integration tests", "QA", "https://qa.example.com"));
-    assertEquals(201, created.getStatusCode(), "Could not create fallback service. Body: " + created.getBody());
-
-    JsonNode node = readTree(created.getBody());
-    existingServiceId = node.get("id").asLong();
-    existingServiceName = name;
-    fallbackCreatedServiceId = existingServiceId;
-  }
-
   @When("the client sends a GET request for that service by id")
   public void theClientSendsAGetRequestForThatServiceById() throws IOException, InterruptedException {
-    IntegrationContext.setLastResponse(apiClient.getServiceById(IntegrationContext.getToken(), existingServiceId));
+    IntegrationContext.setLastResponse(
+        apiClient.getServiceById(IntegrationContext.getToken(), IntegrationContext.getExistingServiceId()));
   }
 
   @Then("the response body should match the ServicesVO shape")
@@ -153,7 +82,10 @@ public class ServicesIntegrationStepDefinitions {
   @Then("the returned service id should equal the requested id")
   public void theReturnedServiceIdShouldEqualTheRequestedId() throws IOException {
     JsonNode node = readTree(IntegrationContext.getLastResponse().getBody());
-    assertEquals(existingServiceId, node.get("id").asLong(), "Returned service id does not match the requested id");
+    assertEquals(
+        IntegrationContext.getExistingServiceId(),
+        node.get("id").asLong(),
+        "Returned service id does not match the requested id");
   }
 
   @When("the client creates a service with a null name")
@@ -173,7 +105,8 @@ public class ServicesIntegrationStepDefinitions {
     IntegrationContext.setLastResponse(
         apiClient.createService(
             IntegrationContext.getToken(),
-            buildServiceJson(existingServiceName, "Duplicate name validation test", "QA", "https://qa.example.com")));
+            buildServiceJson(
+                IntegrationContext.getExistingServiceName(), "Duplicate name validation test", "QA", "https://qa.example.com")));
   }
 
   // ---------------------------------------------------------------------

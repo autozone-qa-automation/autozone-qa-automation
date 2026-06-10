@@ -5,10 +5,12 @@ import com.autozone.integration.client.FeaturesApiClient;
 import com.autozone.integration.client.ServicesApiClient;
 import com.autozone.integration.client.TestCasesApiClient;
 import com.autozone.integration.config.IntegrationConfig;
+import com.autozone.integration.cucumber.support.IntegrationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.cucumber.java.After;
+import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -20,23 +22,17 @@ import java.util.UUID;
 /**
  * Step definitions for the {@code @test-cases} integration feature.
  *
- * <p>Holds its own copy of the shared "background" steps (base URL, login, token), plus the
- * steps for {@code test-cases.feature}.
+ * <p>The shared "background" steps (base URL, login, token) and generic response assertions
+ * live in {@link com.autozone.integration.cucumber.support.BackgroundStepDefinitions}. This
+ * class holds the steps for {@code test-cases.feature}.
  */
 public class TestCasesIntegrationStepDefinitions {
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
-  private String baseUrl;
   private TestCasesApiClient apiClient;
   private FeaturesApiClient featuresApiClient;
   private ServicesApiClient servicesApiClient;
-  private String loginPath;
-  private String username;
-  private String password;
-  private String token;
-
-  private ApiResponse lastResponse;
 
   // an existing feature used to attach test cases to
   private long existingFeatureId;
@@ -55,37 +51,17 @@ public class TestCasesIntegrationStepDefinitions {
 
   private final List<Long> createdTestCaseIds = new ArrayList<>();
 
-  // ---------------------------------------------------------------------
-  // Shared background steps
-  // ---------------------------------------------------------------------
-
-  @Given("the API base URL is configured")
-  public void theApiBaseUrlIsConfigured() {
-    baseUrl = IntegrationConfig.getBaseUrl();
+  @Before
+  public void setUpClients() {
+    String baseUrl = IntegrationConfig.getBaseUrl();
     apiClient = new TestCasesApiClient(baseUrl);
     featuresApiClient = new FeaturesApiClient(baseUrl);
     servicesApiClient = new ServicesApiClient(baseUrl);
   }
 
-  @Given("the login endpoint is configured")
-  public void theLoginEndpointIsConfigured() {
-    loginPath = IntegrationConfig.getLoginPath();
-  }
-
-  @Given("valid ADMIN credentials are configured")
-  public void validAdminCredentialsAreConfigured() {
-    username = IntegrationConfig.getUsername();
-    password = IntegrationConfig.getPassword();
-  }
-
-  @Given("the client requests an access token")
-  public void theClientRequestsAnAccessToken() throws IOException, InterruptedException {
-    token = servicesApiClient.loginAndGetToken(loginPath, username, password);
-    assertTrue(token != null && !token.isBlank(), "Expected a non-blank access token");
-  }
-
   @After
   public void cleanUpCreatedTestCases() throws IOException, InterruptedException {
+    String token = IntegrationContext.getToken();
     for (Long id : createdTestCaseIds) {
       apiClient.deactivateTestCase(token, id);
     }
@@ -102,61 +78,19 @@ public class TestCasesIntegrationStepDefinitions {
   }
 
   // ---------------------------------------------------------------------
-  // Generic GET dispatcher
+  // Shared shape assertions
   // ---------------------------------------------------------------------
-
-  @When("the client sends a GET request to {string}")
-  public void theClientSendsAGetRequestTo(String path) throws IOException, InterruptedException {
-    if ("/api/v1/test-cases".equals(path)) {
-      lastResponse = apiClient.getAllTestCases(token);
-      return;
-    }
-    if (path.startsWith("/api/v1/test-cases/feature/")) {
-      long featureId = Long.parseLong(path.substring("/api/v1/test-cases/feature/".length()));
-      lastResponse = apiClient.getTestCasesByFeature(token, featureId);
-      return;
-    }
-    if (path.startsWith("/api/v1/test-cases/")) {
-      long id = Long.parseLong(path.substring("/api/v1/test-cases/".length()));
-      lastResponse = apiClient.getTestCaseById(token, id);
-      return;
-    }
-    throw new IllegalArgumentException("Unsupported path for generic GET step: " + path);
-  }
-
-  // ---------------------------------------------------------------------
-  // Shared status/shape assertions
-  // ---------------------------------------------------------------------
-
-  @Then("the response status code should be {int}")
-  public void theResponseStatusCodeShouldBe(int expectedStatus) {
-    assertEquals(
-        expectedStatus,
-        lastResponse.getStatusCode(),
-        "Unexpected status code. Body: " + lastResponse.getBody());
-  }
-
-  @Then("the response body should be a JSON array")
-  public void theResponseBodyShouldBeAJsonArray() throws IOException {
-    JsonNode body = readTree(lastResponse.getBody());
-    assertTrue(body.isArray(), "Expected a JSON array but got: " + lastResponse.getBody());
-  }
-
-  @Then("the response body should be empty")
-  public void theResponseBodyShouldBeEmpty() {
-    assertTrue(!lastResponse.hasBody(), "Expected an empty response body but got: " + lastResponse.getBody());
-  }
 
   @Then("the response {string} should be null")
   public void theResponseFieldShouldBeNull(String fieldName) throws IOException {
-    JsonNode node = readTree(lastResponse.getBody());
+    JsonNode node = readTree(IntegrationContext.getLastResponse().getBody());
     JsonNode field = node.get(fieldName);
     assertTrue(field == null || field.isNull(), "Expected '" + fieldName + "' to be null but was: " + field);
   }
 
   @Then("each test case in the response should have an \"id\", a \"title\", a \"relatedFeature\", a \"type\", \"steps\", \"expectedOutput\" and an \"active\" flag")
   public void eachTestCaseShouldHaveExpectedFields() throws IOException {
-    JsonNode testCases = readTree(lastResponse.getBody());
+    JsonNode testCases = readTree(IntegrationContext.getLastResponse().getBody());
     for (JsonNode testCase : testCases) {
       assertTrue(testCase.has("id"), "Test case is missing 'id': " + testCase);
       assertTrue(testCase.has("title"), "Test case is missing 'title': " + testCase);
@@ -174,6 +108,7 @@ public class TestCasesIntegrationStepDefinitions {
 
   @Given("an existing feature for test cases")
   public void anExistingFeatureForTestCases() throws IOException, InterruptedException {
+    String token = IntegrationContext.getToken();
     ApiResponse response = featuresApiClient.getAllFeatures(token);
     assertEquals(200, response.getStatusCode(), "Could not list features. Body: " + response.getBody());
 
@@ -232,14 +167,15 @@ public class TestCasesIntegrationStepDefinitions {
     createdTestCaseSteps = "1. Open the application. 2. Perform the action under test.";
     createdTestCaseExpectedOutput = "The expected result is observed.";
 
-    lastResponse = apiClient.createTestCase(
-        token,
-        buildTestCaseJson(createdTestCaseTitle, createdTestCaseSteps, createdTestCaseExpectedOutput, "REGRESSION", existingFeatureId, null));
+    IntegrationContext.setLastResponse(
+        apiClient.createTestCase(
+            IntegrationContext.getToken(),
+            buildTestCaseJson(createdTestCaseTitle, createdTestCaseSteps, createdTestCaseExpectedOutput, "REGRESSION", existingFeatureId, null)));
   }
 
   @Then("the response should echo the created test case title, type, steps, expected output and related feature")
   public void theResponseShouldEchoTheCreatedTestCaseFields() throws IOException {
-    JsonNode node = readTree(lastResponse.getBody());
+    JsonNode node = readTree(IntegrationContext.getLastResponse().getBody());
     assertEquals(createdTestCaseTitle, node.get("title").asText(), "Response did not echo the created test case title");
     assertEquals("REGRESSION", node.get("type").asText(), "Response did not echo the created test case type");
     assertEquals(createdTestCaseSteps, node.get("steps").asText(), "Response did not echo the created test case steps");
@@ -249,7 +185,7 @@ public class TestCasesIntegrationStepDefinitions {
 
   @Then("the response should be active and include a generated test case id")
   public void theResponseShouldBeActiveAndIncludeAGeneratedTestCaseId() throws IOException {
-    JsonNode node = readTree(lastResponse.getBody());
+    JsonNode node = readTree(IntegrationContext.getLastResponse().getBody());
     assertTrue(node.get("active").asBoolean(), "Expected the created test case to be active: " + node);
 
     JsonNode id = node.get("id");
@@ -260,12 +196,12 @@ public class TestCasesIntegrationStepDefinitions {
 
   @When("the client retrieves the created test case by id")
   public void theClientRetrievesTheCreatedTestCaseById() throws IOException, InterruptedException {
-    lastResponse = apiClient.getTestCaseById(token, createdTestCaseId);
+    IntegrationContext.setLastResponse(apiClient.getTestCaseById(IntegrationContext.getToken(), createdTestCaseId));
   }
 
   @Then("the response body should match the created test case data")
   public void theResponseBodyShouldMatchTheCreatedTestCaseData() throws IOException {
-    JsonNode node = readTree(lastResponse.getBody());
+    JsonNode node = readTree(IntegrationContext.getLastResponse().getBody());
     assertEquals(createdTestCaseId, node.get("id").asLong(), "Test case id does not match");
     assertEquals(createdTestCaseTitle, node.get("title").asText(), "Test case title does not match");
     assertEquals(existingFeatureId, node.get("relatedFeature").asLong(), "Test case relatedFeature does not match");
@@ -277,12 +213,12 @@ public class TestCasesIntegrationStepDefinitions {
 
   @When("the client lists test cases by that feature")
   public void theClientListsTestCasesByThatFeature() throws IOException, InterruptedException {
-    lastResponse = apiClient.getTestCasesByFeature(token, existingFeatureId);
+    IntegrationContext.setLastResponse(apiClient.getTestCasesByFeature(IntegrationContext.getToken(), existingFeatureId));
   }
 
   @Then("the response should include the created test case")
   public void theResponseShouldIncludeTheCreatedTestCase() throws IOException {
-    JsonNode testCases = readTree(lastResponse.getBody());
+    JsonNode testCases = readTree(IntegrationContext.getLastResponse().getBody());
     boolean found = false;
     for (JsonNode testCase : testCases) {
       if (testCase.has("id") && testCase.get("id").asLong() == createdTestCaseId) {
@@ -299,15 +235,16 @@ public class TestCasesIntegrationStepDefinitions {
     createdTestCaseSteps = createdTestCaseSteps + " 3. Verify the updated behavior.";
     createdTestCaseExpectedOutput = createdTestCaseExpectedOutput + " The update is reflected.";
 
-    lastResponse = apiClient.updateTestCase(
-        token,
-        createdTestCaseId,
-        buildTestCaseJson(createdTestCaseTitle, createdTestCaseSteps, createdTestCaseExpectedOutput, "REGRESSION", existingFeatureId, createdTestCaseId));
+    IntegrationContext.setLastResponse(
+        apiClient.updateTestCase(
+            IntegrationContext.getToken(),
+            createdTestCaseId,
+            buildTestCaseJson(createdTestCaseTitle, createdTestCaseSteps, createdTestCaseExpectedOutput, "REGRESSION", existingFeatureId, createdTestCaseId)));
   }
 
   @Then("the response should reflect the updated test case title, steps and expected output")
   public void theResponseShouldReflectTheUpdatedTestCaseFields() throws IOException {
-    JsonNode node = readTree(lastResponse.getBody());
+    JsonNode node = readTree(IntegrationContext.getLastResponse().getBody());
     assertEquals(createdTestCaseTitle, node.get("title").asText(), "Test case title was not updated");
     assertEquals(createdTestCaseSteps, node.get("steps").asText(), "Test case steps were not updated");
     assertEquals(createdTestCaseExpectedOutput, node.get("expectedOutput").asText(), "Test case expectedOutput was not updated");
@@ -324,7 +261,7 @@ public class TestCasesIntegrationStepDefinitions {
     createdTestCaseExpectedOutput = "The expected result is observed.";
 
     ApiResponse response = apiClient.createTestCase(
-        token,
+        IntegrationContext.getToken(),
         buildTestCaseJson(createdTestCaseTitle, createdTestCaseSteps, createdTestCaseExpectedOutput, "REGRESSION", existingFeatureId, null));
     assertEquals(201, response.getStatusCode(), "Could not create test case. Body: " + response.getBody());
 
@@ -335,7 +272,7 @@ public class TestCasesIntegrationStepDefinitions {
 
   @Then("the response should include the created test case with its feature name populated")
   public void theResponseShouldIncludeTheCreatedTestCaseWithItsFeatureNamePopulated() throws IOException {
-    JsonNode testCases = readTree(lastResponse.getBody());
+    JsonNode testCases = readTree(IntegrationContext.getLastResponse().getBody());
     boolean found = false;
     for (JsonNode testCase : testCases) {
       if (testCase.has("id") && testCase.get("id").asLong() == createdTestCaseId) {
@@ -360,14 +297,15 @@ public class TestCasesIntegrationStepDefinitions {
     body.put("type", "REGRESSION");
     body.put("relatedFeature", existingFeatureId);
 
-    lastResponse = apiClient.createTestCase(token, objectMapper.writeValueAsString(body));
+    IntegrationContext.setLastResponse(apiClient.createTestCase(IntegrationContext.getToken(), objectMapper.writeValueAsString(body)));
   }
 
   @When("the client creates another test case using the same title for that feature")
   public void theClientCreatesAnotherTestCaseUsingTheSameTitleForThatFeature() throws IOException, InterruptedException {
-    lastResponse = apiClient.createTestCase(
-        token,
-        buildTestCaseJson(createdTestCaseTitle, "1. Different steps.", "A different expected output.", "REGRESSION", existingFeatureId, null));
+    IntegrationContext.setLastResponse(
+        apiClient.createTestCase(
+            IntegrationContext.getToken(),
+            buildTestCaseJson(createdTestCaseTitle, "1. Different steps.", "A different expected output.", "REGRESSION", existingFeatureId, null)));
   }
 
   // ---------------------------------------------------------------------
@@ -377,10 +315,11 @@ public class TestCasesIntegrationStepDefinitions {
   @When("the client updates the created test case using a different id in the body")
   public void theClientUpdatesTheCreatedTestCaseUsingADifferentIdInTheBody() throws IOException, InterruptedException {
     long mismatchedId = createdTestCaseId + 1;
-    lastResponse = apiClient.updateTestCase(
-        token,
-        createdTestCaseId,
-        buildTestCaseJson(createdTestCaseTitle, createdTestCaseSteps, createdTestCaseExpectedOutput, "REGRESSION", existingFeatureId, mismatchedId));
+    IntegrationContext.setLastResponse(
+        apiClient.updateTestCase(
+            IntegrationContext.getToken(),
+            createdTestCaseId,
+            buildTestCaseJson(createdTestCaseTitle, createdTestCaseSteps, createdTestCaseExpectedOutput, "REGRESSION", existingFeatureId, mismatchedId)));
   }
 
   // ---------------------------------------------------------------------
@@ -389,6 +328,7 @@ public class TestCasesIntegrationStepDefinitions {
 
   @Given("the client has created two test cases with distinct titles for that feature")
   public void theClientHasCreatedTwoTestCasesWithDistinctTitlesForThatFeature() throws IOException, InterruptedException {
+    String token = IntegrationContext.getToken();
     createdTestCaseTitle = "QA Test Case A " + UUID.randomUUID();
     createdTestCaseSteps = "1. Steps for test case A.";
     createdTestCaseExpectedOutput = "Expected output for test case A.";
@@ -413,10 +353,11 @@ public class TestCasesIntegrationStepDefinitions {
 
   @When("the client updates the first test case using the second test case's title")
   public void theClientUpdatesTheFirstTestCaseUsingTheSecondTestCaseSTitle() throws IOException, InterruptedException {
-    lastResponse = apiClient.updateTestCase(
-        token,
-        createdTestCaseId,
-        buildTestCaseJson(secondTestCaseTitle, createdTestCaseSteps, createdTestCaseExpectedOutput, "REGRESSION", existingFeatureId, createdTestCaseId));
+    IntegrationContext.setLastResponse(
+        apiClient.updateTestCase(
+            IntegrationContext.getToken(),
+            createdTestCaseId,
+            buildTestCaseJson(secondTestCaseTitle, createdTestCaseSteps, createdTestCaseExpectedOutput, "REGRESSION", existingFeatureId, createdTestCaseId)));
   }
 
   // ---------------------------------------------------------------------
@@ -425,12 +366,12 @@ public class TestCasesIntegrationStepDefinitions {
 
   @When("the client deactivates the created test case")
   public void theClientDeactivatesTheCreatedTestCase() throws IOException, InterruptedException {
-    lastResponse = apiClient.deactivateTestCase(token, createdTestCaseId);
+    IntegrationContext.setLastResponse(apiClient.deactivateTestCase(IntegrationContext.getToken(), createdTestCaseId));
   }
 
   @When("the client deactivates the test case with id {long}")
   public void theClientDeactivatesTheTestCaseWithId(long id) throws IOException, InterruptedException {
-    lastResponse = apiClient.deactivateTestCase(token, id);
+    IntegrationContext.setLastResponse(apiClient.deactivateTestCase(IntegrationContext.getToken(), id));
   }
 
   // ---------------------------------------------------------------------

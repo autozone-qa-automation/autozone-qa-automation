@@ -2,7 +2,6 @@ package com.autozone.integration.cucumber.features;
 
 import com.autozone.integration.client.ApiResponse;
 import com.autozone.integration.client.FeaturesApiClient;
-import com.autozone.integration.client.ServicesApiClient;
 import com.autozone.integration.config.IntegrationConfig;
 import com.autozone.integration.cucumber.support.IntegrationContext;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -30,12 +29,6 @@ public class FeaturesIntegrationStepDefinitions {
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   private FeaturesApiClient apiClient;
-  private ServicesApiClient servicesApiClient;
-
-  // an existing service used to attach features to
-  private long existingServiceId;
-  private String existingServiceName;
-  private Long fallbackCreatedServiceId;
 
   // created feature(s) state
   private long createdFeatureId;
@@ -49,47 +42,16 @@ public class FeaturesIntegrationStepDefinitions {
 
   @Before
   public void setUpClients() {
-    String baseUrl = IntegrationConfig.getBaseUrl();
-    apiClient = new FeaturesApiClient(baseUrl);
-    servicesApiClient = new ServicesApiClient(baseUrl);
+    apiClient = new FeaturesApiClient(IntegrationConfig.getBaseUrl());
   }
 
-  @After
+  @After(order = 1)
   public void cleanUpCreatedFeatures() throws IOException, InterruptedException {
     String token = IntegrationContext.getToken();
     for (Long id : createdFeatureIds) {
       apiClient.deactivateFeature(token, id);
     }
     createdFeatureIds.clear();
-
-    if (fallbackCreatedServiceId != null) {
-      servicesApiClient.deleteService(token, fallbackCreatedServiceId);
-      fallbackCreatedServiceId = null;
-    }
-  }
-
-  // ---------------------------------------------------------------------
-  // Generic GET dispatcher
-  // ---------------------------------------------------------------------
-
-  @When("the client sends a GET request to {string}")
-  public void theClientSendsAGetRequestTo(String path) throws IOException, InterruptedException {
-    String token = IntegrationContext.getToken();
-    if ("/api/v1/features".equals(path)) {
-      IntegrationContext.setLastResponse(apiClient.getAllFeatures(token));
-      return;
-    }
-    if (path.startsWith("/api/v1/features/filtered/")) {
-      long serviceId = Long.parseLong(path.substring("/api/v1/features/filtered/".length()));
-      IntegrationContext.setLastResponse(apiClient.getFeaturesByService(token, serviceId));
-      return;
-    }
-    if (path.startsWith("/api/v1/features/")) {
-      long id = Long.parseLong(path.substring("/api/v1/features/".length()));
-      IntegrationContext.setLastResponse(apiClient.getFeatureById(token, id));
-      return;
-    }
-    throw new IllegalArgumentException("Unsupported path for generic GET step: " + path);
   }
 
   // ---------------------------------------------------------------------
@@ -108,40 +70,6 @@ public class FeaturesIntegrationStepDefinitions {
   }
 
   // ---------------------------------------------------------------------
-  // an existing service from the services list
-  // ---------------------------------------------------------------------
-
-  @Given("an existing service from the services list")
-  public void anExistingServiceFromTheServicesList() throws IOException, InterruptedException {
-    String token = IntegrationContext.getToken();
-    ApiResponse response = servicesApiClient.getServices(token);
-    assertEquals(200, response.getStatusCode(), "Could not list services. Body: " + response.getBody());
-
-    JsonNode services = readTree(response.getBody());
-    if (services.size() > 0) {
-      JsonNode first = services.get(0);
-      existingServiceId = first.get("id").asLong();
-      existingServiceName = first.get("name").asText();
-      return;
-    }
-
-    String name = "QA Fallback Service " + UUID.randomUUID();
-    ObjectNode body = objectMapper.createObjectNode();
-    body.put("name", name);
-    body.put("description", "Fallback service for Features integration tests");
-    body.put("isActive", true);
-    body.putArray("urls");
-
-    ApiResponse created = servicesApiClient.createService(token, objectMapper.writeValueAsString(body));
-    assertEquals(201, created.getStatusCode(), "Could not create fallback service. Body: " + created.getBody());
-
-    JsonNode node = readTree(created.getBody());
-    existingServiceId = node.get("id").asLong();
-    existingServiceName = name;
-    fallbackCreatedServiceId = existingServiceId;
-  }
-
-  // ---------------------------------------------------------------------
   // Create / read / filter / update lifecycle
   // ---------------------------------------------------------------------
 
@@ -152,7 +80,7 @@ public class FeaturesIntegrationStepDefinitions {
 
     IntegrationContext.setLastResponse(
         apiClient.createFeature(
-            IntegrationContext.getToken(), buildFeatureJson(createdFeatureName, createdFeatureDescription, existingServiceId)));
+            IntegrationContext.getToken(), buildFeatureJson(createdFeatureName, createdFeatureDescription, IntegrationContext.getExistingServiceId())));
   }
 
   @Then("the response should echo the created feature name, description and service id")
@@ -160,13 +88,13 @@ public class FeaturesIntegrationStepDefinitions {
     JsonNode node = readTree(IntegrationContext.getLastResponse().getBody());
     assertEquals(createdFeatureName, node.get("featureName").asText(), "Response did not echo the created feature name");
     assertEquals(createdFeatureDescription, node.get("featureDescription").asText(), "Response did not echo the created feature description");
-    assertEquals(existingServiceId, node.get("idService").asLong(), "Response did not echo the service id");
+    assertEquals(IntegrationContext.getExistingServiceId(), node.get("idService").asLong(), "Response did not echo the service id");
   }
 
   @Then("the response should include the service name and a generated feature id")
   public void theResponseShouldIncludeTheServiceNameAndAGeneratedFeatureId() throws IOException {
     JsonNode node = readTree(IntegrationContext.getLastResponse().getBody());
-    assertEquals(existingServiceName, node.get("serviceName").asText(), "Response did not include the expected service name");
+    assertEquals(IntegrationContext.getExistingServiceName(), node.get("serviceName").asText(), "Response did not include the expected service name");
 
     JsonNode id = node.get("id");
     assertTrue(id != null && !id.isNull() && id.isIntegralNumber(), "Response did not include a generated id: " + node);
@@ -185,13 +113,13 @@ public class FeaturesIntegrationStepDefinitions {
     assertEquals(createdFeatureId, node.get("id").asLong(), "Feature id does not match");
     assertEquals(createdFeatureName, node.get("featureName").asText(), "Feature name does not match");
     assertEquals(createdFeatureDescription, node.get("featureDescription").asText(), "Feature description does not match");
-    assertEquals(existingServiceId, node.get("idService").asLong(), "Feature idService does not match");
-    assertEquals(existingServiceName, node.get("serviceName").asText(), "Feature serviceName does not match");
+    assertEquals(IntegrationContext.getExistingServiceId(), node.get("idService").asLong(), "Feature idService does not match");
+    assertEquals(IntegrationContext.getExistingServiceName(), node.get("serviceName").asText(), "Feature serviceName does not match");
   }
 
   @When("the client lists features filtered by that service id")
   public void theClientListsFeaturesFilteredByThatServiceId() throws IOException, InterruptedException {
-    IntegrationContext.setLastResponse(apiClient.getFeaturesByService(IntegrationContext.getToken(), existingServiceId));
+    IntegrationContext.setLastResponse(apiClient.getFeaturesByService(IntegrationContext.getToken(), IntegrationContext.getExistingServiceId()));
   }
 
   @Then("the response should include the created feature")
@@ -214,7 +142,7 @@ public class FeaturesIntegrationStepDefinitions {
 
     IntegrationContext.setLastResponse(
         apiClient.updateFeature(
-            IntegrationContext.getToken(), createdFeatureId, buildFeatureJson(createdFeatureName, createdFeatureDescription, existingServiceId)));
+            IntegrationContext.getToken(), createdFeatureId, buildFeatureJson(createdFeatureName, createdFeatureDescription, IntegrationContext.getExistingServiceId())));
   }
 
   @Then("the response should reflect the updated feature name and description")
@@ -227,7 +155,7 @@ public class FeaturesIntegrationStepDefinitions {
   @Then("the feature's service id should remain unchanged")
   public void theFeatureSServiceIdShouldRemainUnchanged() throws IOException {
     JsonNode node = readTree(IntegrationContext.getLastResponse().getBody());
-    assertEquals(existingServiceId, node.get("idService").asLong(), "Feature idService should not change on update");
+    assertEquals(IntegrationContext.getExistingServiceId(), node.get("idService").asLong(), "Feature idService should not change on update");
   }
 
   // ---------------------------------------------------------------------
@@ -239,14 +167,14 @@ public class FeaturesIntegrationStepDefinitions {
     String token = IntegrationContext.getToken();
     createdFeatureName = "QA Duplicate Name Feature A " + UUID.randomUUID();
     createdFeatureDescription = "First feature for duplicate-name update test";
-    ApiResponse firstResponse = apiClient.createFeature(token, buildFeatureJson(createdFeatureName, createdFeatureDescription, existingServiceId));
+    ApiResponse firstResponse = apiClient.createFeature(token, buildFeatureJson(createdFeatureName, createdFeatureDescription, IntegrationContext.getExistingServiceId()));
     assertEquals(201, firstResponse.getStatusCode(), "Could not create first feature. Body: " + firstResponse.getBody());
     JsonNode firstNode = readTree(firstResponse.getBody());
     createdFeatureId = firstNode.get("id").asLong();
     createdFeatureIds.add(createdFeatureId);
 
     secondFeatureName = "QA Duplicate Name Feature B " + UUID.randomUUID();
-    ApiResponse secondResponse = apiClient.createFeature(token, buildFeatureJson(secondFeatureName, "Second feature for duplicate-name update test", existingServiceId));
+    ApiResponse secondResponse = apiClient.createFeature(token, buildFeatureJson(secondFeatureName, "Second feature for duplicate-name update test", IntegrationContext.getExistingServiceId()));
     assertEquals(201, secondResponse.getStatusCode(), "Could not create second feature. Body: " + secondResponse.getBody());
     JsonNode secondNode = readTree(secondResponse.getBody());
     secondFeatureId = secondNode.get("id").asLong();
@@ -257,7 +185,7 @@ public class FeaturesIntegrationStepDefinitions {
   public void theClientUpdatesTheFirstFeatureUsingTheSecondFeatureSName() throws IOException, InterruptedException {
     IntegrationContext.setLastResponse(
         apiClient.updateFeature(
-            IntegrationContext.getToken(), createdFeatureId, buildFeatureJson(secondFeatureName, createdFeatureDescription, existingServiceId)));
+            IntegrationContext.getToken(), createdFeatureId, buildFeatureJson(secondFeatureName, createdFeatureDescription, IntegrationContext.getExistingServiceId())));
   }
 
   // ---------------------------------------------------------------------
@@ -268,7 +196,7 @@ public class FeaturesIntegrationStepDefinitions {
   public void theClientHasCreatedANewFeatureForThatService() throws IOException, InterruptedException {
     createdFeatureName = "QA Deactivate Feature " + UUID.randomUUID();
     createdFeatureDescription = "Created for the deactivate scenario";
-    ApiResponse response = apiClient.createFeature(IntegrationContext.getToken(), buildFeatureJson(createdFeatureName, createdFeatureDescription, existingServiceId));
+    ApiResponse response = apiClient.createFeature(IntegrationContext.getToken(), buildFeatureJson(createdFeatureName, createdFeatureDescription, IntegrationContext.getExistingServiceId()));
     assertEquals(201, response.getStatusCode(), "Could not create feature. Body: " + response.getBody());
     JsonNode node = readTree(response.getBody());
     createdFeatureId = node.get("id").asLong();
@@ -294,7 +222,7 @@ public class FeaturesIntegrationStepDefinitions {
     ObjectNode body = objectMapper.createObjectNode();
     body.putNull("featureName");
     body.put("featureDescription", "Feature with no name");
-    body.put("idService", existingServiceId);
+    body.put("idService", IntegrationContext.getExistingServiceId());
 
     IntegrationContext.setLastResponse(apiClient.createFeature(IntegrationContext.getToken(), objectMapper.writeValueAsString(body)));
   }
