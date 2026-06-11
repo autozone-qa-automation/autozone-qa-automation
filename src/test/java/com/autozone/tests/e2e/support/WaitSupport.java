@@ -35,4 +35,8 @@ public class WaitSupport {
     public static boolean waitForUrl(WebDriverWait wait, String url) {
         return wait.until(ExpectedConditions.urlToBe(url));
     }
+
+    public static boolean waitForAbsence(WebDriverWait wait, By locator) {
+        return wait.until(ExpectedConditions.invisibilityOfElementLocated(locator));
+    }
 }
