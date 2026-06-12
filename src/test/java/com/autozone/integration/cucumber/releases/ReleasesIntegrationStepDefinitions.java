@@ -1,5 +1,8 @@
 package com.autozone.integration.cucumber.releases;
 
+import java.io.IOException;
+import java.util.UUID;
+
 import com.autozone.integration.client.ReleasesApiClient;
 import com.autozone.integration.config.IntegrationConfig;
 import com.autozone.integration.cucumber.support.IntegrationContext;
@@ -7,11 +10,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import io.cucumber.java.Before;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import java.io.IOException;
-import java.util.UUID;
 
 /**
  * Step definitions for the {@code @releases} integration feature.
@@ -80,6 +82,10 @@ public class ReleasesIntegrationStepDefinitions {
                 createdReleaseVersion,
                 createdReleaseStatus,
                 createdReleaseTags)));
+    JsonNode node = readTree(IntegrationContext.getLastResponse().getBody());
+    if (node.has("releaseId")) {
+        createdReleaseId = node.get("releaseId").asLong();
+    }
   }
 
   @When("the client creates a new Draft release with the tag {string}")
@@ -121,6 +127,10 @@ public class ReleasesIntegrationStepDefinitions {
                 createdReleaseVersion,
                 createdReleaseStatus,
                 createdReleaseTags)));
+    JsonNode node = readTree(IntegrationContext.getLastResponse().getBody());
+    if (node.has("releaseId")) {
+        createdReleaseId = node.get("releaseId").asLong();
+    }
   }
 
   @When("the client creates a release with a null release name")
@@ -248,7 +258,8 @@ public class ReleasesIntegrationStepDefinitions {
     body.put("releaseDescription", description);
     body.put("releaseVersion", version);
     body.put("releaseStatus", status);
-    body.put("idService", IntegrationContext.getExistingServiceId());
+    body.put("releaseServiceId", IntegrationContext.getExistingServiceId());
+    body.put("releaseCreationDate", java.time.LocalDate.now().toString());
 
     ArrayNode tagsArray = body.putArray("releaseTags");
     for (String tag : tags.split(",")) {

@@ -76,7 +76,7 @@ Feature: Releases API
 
     When the client transitions the created release to status "Draft"
     Then the response status code should be 400
-    And the response content type should be "text/plain"
+    And the response content type should be "application/json"
     And the response body should contain "Invalid status transition"
 
   Scenario: An invalid status enum value returns 400 with a JSON error body
@@ -95,7 +95,7 @@ Feature: Releases API
   Scenario: Updating the status of a non-existent release returns 404 with a plain-text body
     When the client transitions the release with id 999999999 to status "Active"
     Then the response status code should be 404
-    And the response content type should be "text/plain"
+    And the response content type should be "application/json"
     And the response body should contain "999999999"
 
   Scenario: Deleting a non-existent release returns 404 with a JSON error body
