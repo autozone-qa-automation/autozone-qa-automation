@@ -48,7 +48,9 @@ public class TestCasesEditBot extends BaseBot {
     }
 
     private void clearAndType(WebElement el, String value) {
-        el.click();
+        wait.until(ExpectedConditions.elementToBeClickable(el));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block:'center'});", el);
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", el);
         el.sendKeys(Keys.CONTROL + "a");
         el.sendKeys(Keys.DELETE);
         el.sendKeys(value);
@@ -102,6 +104,9 @@ public class TestCasesEditBot extends BaseBot {
             ExpectedConditions.presenceOfElementLocated(By.cssSelector("[data-combobox-option]"))
         );
         ((JavascriptExecutor) driver).executeScript("arguments[0].click();", option);
+        shortWait.until(
+            ExpectedConditions.invisibilityOfElementLocated(By.cssSelector("[data-combobox-option]"))
+        );
     }
 
     public void clearFeature() {
