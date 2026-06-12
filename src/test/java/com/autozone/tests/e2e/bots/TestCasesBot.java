@@ -44,6 +44,13 @@ public class TestCasesBot extends BaseBot {
             "| //*[normalize-space()='Crear Test Case']"
         );
 
+        // Additional selectors used by older testcases scenarios
+        private static final By VIEW_BUTTONS =
+            By.cssSelector("[data-testid='view-button']");
+
+        private static final By EMPTY_MESSAGE =
+            By.cssSelector("[data-testid='empty-testcases-message']");
+
     public TestCasesBot(WebDriver driver) {
         super(driver);
     }
@@ -89,6 +96,24 @@ public class TestCasesBot extends BaseBot {
         }
 
         buttons.get(0).click();
+    }
+
+    public boolean hasViewButtons() {
+        return findElements(VIEW_BUTTONS).size() > 0;
+    }
+
+    public boolean isEmptyMessageVisible() {
+        return findElements(EMPTY_MESSAGE).size() > 0;
+    }
+
+    public void clickFirstViewButton() {
+        WebElement button = waitForPresence(VIEW_BUTTONS);
+        button.click();
+    }
+
+    public int getViewButtonsCount() {
+        List<WebElement> buttons = findElements(VIEW_BUTTONS);
+        return buttons.size();
     }
 
     public boolean hasTestCaseNamed(String name) {

@@ -46,3 +46,10 @@ Feature: Test Cases
         And the user leaves required create test case fields empty
         And the user submits the create test case form
         Then the system should prevent creating the test case
+        
+    @testcases @view
+    Scenario: Read Testcases Details
+        Given the user opens the test cases list page
+        Then test cases should be listed
+        When the user clicks the first view button
+        Then the test case modal should be visible

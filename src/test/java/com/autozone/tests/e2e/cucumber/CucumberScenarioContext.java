@@ -9,11 +9,17 @@ import com.autozone.tests.e2e.bots.BaseBot;
 import com.autozone.tests.e2e.bots.FeatureBot;
 import com.autozone.tests.e2e.bots.LoginBot;
 import com.autozone.tests.e2e.bots.ReleaseDeleteBot;
+import com.autozone.tests.e2e.bots.ReleaseIdBot;
 import com.autozone.tests.e2e.bots.ReleasesBot;
+import com.autozone.tests.e2e.bots.ServiceEditBot;
 import com.autozone.tests.e2e.bots.ServiceIdBot;
 import com.autozone.tests.e2e.bots.ServicesBot;
 import com.autozone.tests.e2e.bots.TestCasesBot;
 import com.autozone.tests.e2e.bots.TestCasesCreateBot;
+import com.autozone.tests.e2e.bots.TestCasesEditBot;
+import com.autozone.tests.e2e.bots.TestCaseModalBot;
+import com.autozone.tests.e2e.bots.UserEditBot;
+import com.autozone.tests.e2e.bots.UsersBot;
 
 public class CucumberScenarioContext {
 
@@ -67,6 +73,10 @@ public class CucumberScenarioContext {
         return getBot(ServiceIdBot.class);
     }
 
+    public static ServiceEditBot getServiceEditBot() {
+        return getBot(ServiceEditBot.class);
+    }
+
     public static FeatureBot getFeatureBot() {
         return getBot(FeatureBot.class);
     }
@@ -81,5 +91,32 @@ public class CucumberScenarioContext {
 
     public static TestCasesCreateBot getTestCasesCreateBot() {
         return getBot(TestCasesCreateBot.class);
+    }
+    public static TestCaseModalBot getTestCaseModalBot() {
+        return getBot(TestCaseModalBot.class);
+    }
+
+    public static LoginBot getLoginBot() {
+        return getBot(LoginBot.class);
+    }
+
+    public static UsersBot getUsersBot() {
+        return getBot(UsersBot.class);
+    }
+
+    public static UserEditBot getUserEditBot() {
+        return getBot(UserEditBot.class);
+    }
+
+    public static ReleasesBot getReleasesBot() {
+        return getBot(ReleasesBot.class);
+    }
+
+    public static ReleaseDeleteBot getReleaseDeleteBot() {
+        return getBot(ReleaseDeleteBot.class);
+    }
+
+    public static ReleaseIdBot getReleaseIdBot() {
+        return getBot(ReleaseIdBot.class);
     }
 }
