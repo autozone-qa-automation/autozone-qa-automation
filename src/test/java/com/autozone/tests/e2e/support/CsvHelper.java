@@ -39,11 +39,13 @@ public class CsvHelper {
     }
 
     // Reads the header row (first line). Strips UTF-8 BOM and surrounding quotes.
+    // Auto-detects whether the file uses ";" or "," as separator.
     public static List<String> readHeaders(File csvFile) throws IOException {
         List<String> lines = Files.readAllLines(csvFile.toPath(), StandardCharsets.UTF_8);
         if (lines.isEmpty()) throw new RuntimeException("CSV file is empty: " + csvFile.getName());
         String headerLine = lines.get(0).replace("﻿", ""); // strip BOM
-        return Arrays.stream(headerLine.split(","))
+        String separator = headerLine.contains(";") ? ";" : ",";
+        return Arrays.stream(headerLine.split(separator, -1))
                 .map(h -> h.trim().replace("\"", ""))
                 .collect(Collectors.toList());
     }

@@ -110,6 +110,20 @@ public class ReportsBot extends BaseBot {
         waitForPresence(option).click();
     }
 
+    // Abre el dropdown y selecciona la primera opción disponible.
+    // Retorna el texto de la opción seleccionada para usarlo en aserciones.
+    public String selectFirstAvailableServiceFromDropdown() {
+        waitForPresence(SERVICE_SELECT).click();
+        // Compatible con Mantine v6 (mantine-Select-option) y v7 (data-combobox-option)
+        By firstOption = By.xpath(
+            "(//*[@data-combobox-option] | //*[contains(@class,'mantine-Select-option')])[1]"
+        );
+        WebElement option = waitForPresence(firstOption);
+        String name = option.getText().trim();
+        option.click();
+        return name;
+    }
+
     public void clearServiceFilter() {
         By clearBtn = By.cssSelector("[data-testid='reports-service-select'] [aria-label='Clear']");
         List<WebElement> buttons = findElements(clearBtn);
