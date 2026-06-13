@@ -1,15 +1,9 @@
-@noAutoLogin
-Feature: Logout
+Feature: Gestión de Sesión y Logout
 
-    As an authenticated user
-    I want to log out of the application
-    So that my session is terminated securely
-
-    @logout @security
-    Scenario: TC-07 Successful Logout
-        Given the user logs in successfully
-        When the user clicks the "Log Out" button
-        And the user attempts to return to the previous page using the browser back button
-        Then the session is terminated
-        And the system redirects the user to the login page
-        And access to the dashboard is denied until the user logs in again
+  @ST-US-14
+  Scenario: Logout despues de login
+    Given the user logs in successfully
+    When the user logs out from the application
+    Then the user session must be closed completely
+    And the user is redirected to the login screen
+    And the user cannot access protected routes without a new session
