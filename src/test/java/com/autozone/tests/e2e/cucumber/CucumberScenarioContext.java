@@ -18,6 +18,7 @@ import com.autozone.tests.e2e.bots.ServicesBot;
 import com.autozone.tests.e2e.bots.TestCasesBot;
 import com.autozone.tests.e2e.bots.TestCasesEditBot;
 import com.autozone.tests.e2e.bots.TestCaseModalBot;
+import com.autozone.tests.e2e.bots.UserCreateBot;
 import com.autozone.tests.e2e.bots.UserEditBot;
 import com.autozone.tests.e2e.bots.UsersBot;
 
@@ -99,6 +100,10 @@ public class CucumberScenarioContext {
 
     public static UsersBot getUsersBot() {
         return getBot(UsersBot.class);
+    }
+
+    public static UserCreateBot getUserCreateBot() {
+        return getBot(UserCreateBot.class);
     }
 
     public static UserEditBot getUserEditBot() {
