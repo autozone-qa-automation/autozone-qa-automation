@@ -18,7 +18,7 @@ public class TestCasesBot extends BaseBot {
 
         // Additional selectors used by older testcases scenarios
         private static final By VIEW_BUTTONS =
-            By.cssSelector("[data-testid='view-button']");
+            By.cssSelector("[data-testid^='test-case-view-button-']");
 
         private static final By EMPTY_MESSAGE =
             By.cssSelector("[data-testid='empty-testcases-message']");
