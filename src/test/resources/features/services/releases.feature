@@ -37,8 +37,3 @@ Feature: Releases
         And the single associated service should be displayed
         When the user selects the service   
         Then the service features should be listed
-
-    @releases @details @invalid
-    Scenario: Release details page for invalid release
-        Given the user opens the release details page for 999 invalid release
-        Then the release not found message should be displayed

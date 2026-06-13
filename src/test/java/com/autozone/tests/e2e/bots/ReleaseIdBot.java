@@ -6,8 +6,10 @@ import org.openqa.selenium.WebElement;
 
 public class ReleaseIdBot extends BaseBot {
 
-    private static final String RELEASES_PATH = "/releases/";
+    private static final String RELEASES_PATH = "/releases";
     private static final String SERVICES_PATH = "/services/";
+    private static final String RELEASE_CARD_PREFIX = "release-card-";
+    private static final String CLICKABLE_RELEASE_CARD_SELECTOR = "[data-testid='release-card']";
 
     private static final By RELEASE_ID_PAGE = By.cssSelector("[data-testid='release-id-page']");
     private static final By LOADING_STATE = By.cssSelector("[data-testid='release-id-loading-state']");
@@ -21,7 +23,16 @@ public class ReleaseIdBot extends BaseBot {
     }
 
     public void openRelease(String releaseId) {
-        openPath(RELEASES_PATH + releaseId);
+        openPath(RELEASES_PATH);
+
+        By releaseCard = By.cssSelector(
+                "[data-testid='" + RELEASE_CARD_PREFIX + releaseId + "'] "
+                        + CLICKABLE_RELEASE_CARD_SELECTOR
+        );
+
+        WebElement card = waitForPresence(releaseCard);
+        card.click();
+        waitForPresence(RELEASE_ID_PAGE);
     }
 
     public boolean isPageVisible() {
