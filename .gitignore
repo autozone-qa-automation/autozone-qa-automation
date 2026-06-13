@@ -3,6 +3,7 @@
 # ==========================================
 
 config.properties
+src/test/resources/env.properties
 .env
 *.env
 
