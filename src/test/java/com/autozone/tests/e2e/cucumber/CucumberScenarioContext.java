@@ -8,6 +8,7 @@ import org.openqa.selenium.WebDriver;
 import com.autozone.tests.e2e.bots.BaseBot;
 import com.autozone.tests.e2e.bots.FeatureBot;
 import com.autozone.tests.e2e.bots.LoginBot;
+import com.autozone.tests.e2e.bots.ReleaseCreateBot;
 import com.autozone.tests.e2e.bots.ReleaseDeleteBot;
 import com.autozone.tests.e2e.bots.ReleaseStatusBot;
 import com.autozone.tests.e2e.bots.ReleasesBot;
@@ -110,6 +111,10 @@ public class CucumberScenarioContext {
 
     public static ReleaseDeleteBot getReleaseDeleteBot() {
         return getBot(ReleaseDeleteBot.class);
+    }
+
+    public static ReleaseCreateBot getReleaseCreateBot() {
+        return getBot(ReleaseCreateBot.class);
     }
 
     public static ReleaseStatusBot getReleaseStatusBot() {

@@ -83,9 +83,10 @@ public class LoginBot extends BaseBot {
     }
 
     public boolean waitUntilLoggedIn() {
-        return wait.until(webDriver ->
-                hasAuthToken() && !webDriver.getCurrentUrl().contains(LOGIN_PATH)
-        );
+        return wait.until(webDriver -> {
+            captureAndDismissAlertIfPresent();
+            return hasAuthToken() && !webDriver.getCurrentUrl().contains(LOGIN_PATH);
+        });
     }
 
     public boolean waitUntilLoginPage() {
@@ -98,7 +99,12 @@ public class LoginBot extends BaseBot {
     }
 
     public boolean hasAuthToken() {
-        return localStorageValue("authToken") != null;
+        try {
+            return localStorageValue("authToken") != null;
+        } catch (org.openqa.selenium.UnhandledAlertException e) {
+            captureAndDismissAlertIfPresent();
+            return false;
+        }
     }
 
     public boolean hasNoAuthToken() {
