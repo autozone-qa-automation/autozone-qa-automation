@@ -13,6 +13,8 @@ public class ReleasesBot extends BaseBot {
     
     private static final String RELEASES_PATH = "/releases";
     private static final String RELEASE_CARD_PREFIX = "release-card-";
+    private static final By RELEASE_DETAIL_MODAL = By.cssSelector("[data-testid='release-id-page']");
+    private static final String CLICKABLE_RELEASE_CARD_SELECTOR = "[data-testid='release-card']";
 
     private static final By RELEASES_PAGE = By.cssSelector("[data-testid='releases-page']");
     private static final By LOADING_STATE = By.cssSelector("[data-testid='releases-loading-state']");
@@ -20,11 +22,13 @@ public class ReleasesBot extends BaseBot {
     
     private static final By RELEASES_SEARCH_INPUT = By.cssSelector("[data-testid='releases-search-input']");
     private static final By RELEASES_SORT_SELECT = By.cssSelector("[data-testid='releases-sort-select']");
+    private static final By RELEASES_SORT_OPTION_NEWEST = By.cssSelector("[data-testid='releases-sort-option-newest']");
+    private static final By RELEASES_SORT_OPTION_OLDEST = By.cssSelector("[data-testid='releases-sort-option-oldest']");
     private static final By RELEASES_EMPTY_MESSAGE = By.cssSelector("[data-testid='releases-empty-message']");
     
-    private static final By RELEASE_CARDS_ALL = By.cssSelector("[data-testid^='release-card']");
+    private static final By RELEASE_CARDS_ALL = By.cssSelector("[data-testid^='release-card-']");
     private static final By CREATE_OPEN_BUTTON = By.cssSelector("[data-testid='release-create-open-btn']");
-    private static final By DRAFT_FILTER_BUTTON = By.xpath("//button[normalize-space(.)='Draft']");
+    private static final By DRAFT_FILTER_BUTTON = By.cssSelector("[data-testid='releases-filter-button-draft']");
     
     public ReleasesBot(WebDriver driver) {
         super(driver);
@@ -77,9 +81,10 @@ public class ReleasesBot extends BaseBot {
 
     public String openFirstRelease() {
         List<WebElement> cards = waitForAllPresent(RELEASE_CARDS_ALL);
-        WebElement firstCard = cards.get(0);
+        WebElement firstCard = cards.get(0).findElement(By.cssSelector(CLICKABLE_RELEASE_CARD_SELECTOR));
         String title = firstCard.getText().split("\n")[0].trim();
         firstCard.click();
+        waitForPresence(RELEASE_DETAIL_MODAL);
         return title;
     }
 
@@ -112,7 +117,11 @@ public class ReleasesBot extends BaseBot {
         WebElement selectDropdown = waitForPresence(RELEASES_SORT_SELECT);
         selectDropdown.click();
 
-        By optionLocator = By.xpath("//*[contains(@class, 'mantine-Select-option') and text()='" + criteria + "']");
+        By optionLocator = switch (criteria.trim().toLowerCase()) {
+            case "newest" -> RELEASES_SORT_OPTION_NEWEST;
+            case "oldest" -> RELEASES_SORT_OPTION_OLDEST;
+            default -> throw new IllegalArgumentException("Unsupported release sort criteria: " + criteria);
+        };
         WebElement option = waitForPresence(optionLocator);
         option.click();
     }
@@ -120,10 +129,7 @@ public class ReleasesBot extends BaseBot {
     public void openReleaseDetails(String releaseId) {
         WebElement card = findReleaseCard(releaseId);
         card.click();
-
-        wait.until(driver ->
-                driver.getCurrentUrl().endsWith(RELEASES_PATH + "/" + releaseId)
-        );
+        waitForPresence(RELEASE_DETAIL_MODAL);
     }
 
     private List<WebElement> getReleaseCards() {
@@ -131,7 +137,13 @@ public class ReleasesBot extends BaseBot {
     }
 
     private WebElement findReleaseCard(String releaseId) {
-        return waitForElementOrFail(By.cssSelector("[data-testid='" + RELEASE_CARD_PREFIX + releaseId + "']"), RELEASE_CARD_PREFIX + releaseId);
+        return waitForElementOrFail(
+                By.cssSelector(
+                        "[data-testid='" + RELEASE_CARD_PREFIX + releaseId + "'] "
+                                + CLICKABLE_RELEASE_CARD_SELECTOR
+                ),
+                RELEASE_CARD_PREFIX + releaseId
+        );
     }
 
     private WebElement waitForElementOrFail(By locator, String selectorName) {

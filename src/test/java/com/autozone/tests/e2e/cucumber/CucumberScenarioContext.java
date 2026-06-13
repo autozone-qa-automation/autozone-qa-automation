@@ -7,6 +7,8 @@ import org.openqa.selenium.WebDriver;
 
 import com.autozone.tests.e2e.bots.BaseBot;
 import com.autozone.tests.e2e.bots.FeatureBot;
+import com.autozone.tests.e2e.bots.FeatureDetailBot;
+import com.autozone.tests.e2e.bots.FeaturesBot;
 import com.autozone.tests.e2e.bots.LoginBot;
 import com.autozone.tests.e2e.bots.LogoutBot;
 import com.autozone.tests.e2e.bots.ReleaseCreateBot;
@@ -14,6 +16,7 @@ import com.autozone.tests.e2e.bots.ReleaseDeleteBot;
 import com.autozone.tests.e2e.bots.ReleaseIdBot;
 import com.autozone.tests.e2e.bots.ReleaseStatusBot;
 import com.autozone.tests.e2e.bots.ReleasesBot;
+import com.autozone.tests.e2e.bots.ReportsBot;
 import com.autozone.tests.e2e.bots.ServiceEditBot;
 import com.autozone.tests.e2e.bots.ServiceIdBot;
 import com.autozone.tests.e2e.bots.ServicesBot;
@@ -60,7 +63,8 @@ public class CucumberScenarioContext {
                     } catch (Exception e) {
                         throw new RuntimeException("Cannot create bot: " + botClass.getSimpleName(), e);
                     }
-                });
+                }
+        );
     }
 
     public static void clear() {
@@ -83,6 +87,14 @@ public class CucumberScenarioContext {
 
     public static FeatureBot getFeatureBot() {
         return getBot(FeatureBot.class);
+    }
+
+    public static FeaturesBot getFeaturesBot() {
+        return getBot(FeaturesBot.class);
+    }
+
+    public static FeatureDetailBot getFeatureDetailBot() {
+        return getBot(FeatureDetailBot.class);
     }
 
     public static TestCasesBot getTestCasesBot() {
@@ -143,5 +155,9 @@ public class CucumberScenarioContext {
 
     public static LogoutBot getLogoutBot() {
         return getBot(LogoutBot.class);
+    }
+
+    public static ReportsBot getReportsBot() {
+        return getBot(ReportsBot.class);
     }
 }

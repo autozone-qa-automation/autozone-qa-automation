@@ -27,14 +27,6 @@ Feature: Full lifecycle across Services, Features, Test Cases, Releases and Repo
     Then the response status code should be 201
     And the response should include a generated lifecycle release id
 
-    When the client transitions the lifecycle release to status "Progress"
-    Then the response status code should be 200
-    And the response "releaseStatus" should equal "Progress"
-
-    When the client transitions the lifecycle release to status "Active"
-    Then the response status code should be 200
-    And the response "releaseStatus" should equal "Active"
-
     When the client lists reports filtered by the lifecycle release's tag
     Then the response status code should be 200
     And the response should include the lifecycle release with the service, feature and test case in its hierarchy

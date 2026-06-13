@@ -17,7 +17,7 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Step definitions for the {@code @lifecycle} integration feature.
@@ -30,6 +30,8 @@ import java.util.UUID;
  * -&gt; Test Case -&gt; Release -&gt; Reports chain.
  */
 public class LifecycleIntegrationStepDefinitions {
+
+  private static final AtomicInteger counter = new AtomicInteger(0);
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -70,6 +72,13 @@ public class LifecycleIntegrationStepDefinitions {
       featuresApiClient.deactivateFeature(token, lifecycleFeatureId);
       lifecycleFeatureId = null;
     }
+    if (lifecycleReleaseId != 0) {
+      try {
+        releasesApiClient.deleteRelease(token, lifecycleReleaseId);
+      } catch (Exception ignored) {
+      }
+      lifecycleReleaseId = 0;
+    }
     if (lifecycleServiceId != null) {
       servicesApiClient.deleteService(token, lifecycleServiceId);
       lifecycleServiceId = null;
@@ -82,7 +91,7 @@ public class LifecycleIntegrationStepDefinitions {
 
   @When("the client creates a new service for the lifecycle scenario")
   public void theClientCreatesANewServiceForTheLifecycleScenario() throws IOException, InterruptedException {
-    lifecycleServiceName = "QA Lifecycle Service " + UUID.randomUUID();
+    lifecycleServiceName = "QA-LC-SVC-" + counter.incrementAndGet();
 
     ObjectNode body = objectMapper.createObjectNode();
     body.put("name", lifecycleServiceName);
@@ -108,7 +117,7 @@ public class LifecycleIntegrationStepDefinitions {
 
   @When("the client creates a new feature for the lifecycle service")
   public void theClientCreatesANewFeatureForTheLifecycleService() throws IOException, InterruptedException {
-    lifecycleFeatureName = "QA Lifecycle Feature " + UUID.randomUUID();
+    lifecycleFeatureName = "QA-LC-FEA-" + counter.incrementAndGet();
 
     ObjectNode body = objectMapper.createObjectNode();
     body.put("featureName", lifecycleFeatureName);
@@ -129,7 +138,7 @@ public class LifecycleIntegrationStepDefinitions {
 
   @When("the client creates a new test case for the lifecycle feature")
   public void theClientCreatesANewTestCaseForTheLifecycleFeature() throws IOException, InterruptedException {
-    lifecycleTestCaseTitle = "QA Lifecycle Test Case " + UUID.randomUUID();
+    lifecycleTestCaseTitle = "QA-LC-TC-" + counter.incrementAndGet();
 
     ObjectNode body = objectMapper.createObjectNode();
     body.put("title", lifecycleTestCaseTitle);
@@ -157,8 +166,8 @@ public class LifecycleIntegrationStepDefinitions {
   @When("the client creates a new Draft release for the lifecycle service including the lifecycle feature")
   public void theClientCreatesANewDraftReleaseForTheLifecycleServiceIncludingTheLifecycleFeature()
       throws IOException, InterruptedException {
-    lifecycleReleaseName = "QA Lifecycle Release " + UUID.randomUUID();
-    lifecycleReleaseTag = "qa-lifecycle-" + UUID.randomUUID();
+    lifecycleReleaseName = "QA-LC-" + counter.incrementAndGet();
+    lifecycleReleaseTag = "qa-lc-" + counter.get();
 
     ObjectNode body = objectMapper.createObjectNode();
     body.put("releaseName", lifecycleReleaseName);

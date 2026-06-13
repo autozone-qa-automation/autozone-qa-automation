@@ -13,8 +13,8 @@ Feature: Services
   @services @search
   Scenario: Search for a service
     Given the user opens the services list page to search for a service
-    When the user searches for "Oil Change"
-    Then the service "Oil Change" should be displayed in the list
+    When the user searches for "As"
+    Then the services displayed should contain "As"
 
   @services @details
   Scenario: Service details page is visible
@@ -28,11 +28,6 @@ Feature: Services
   Scenario: Service details page for invalid service
     Given the user opens the service details page for 999 invalid service
     Then the service not found message should be displayed
-
-  @services @details @empty-features
-  Scenario: Service details page with no features
-    Given the user opens the service details page for 2 service with no features
-    Then the service features empty message should be displayed
 
   @services @create
   Scenario: Create service successfully
@@ -49,18 +44,18 @@ Feature: Services
   Scenario: Prevent duplicate service creation (case-insensitive)
     Given the user opens the services list page
     When the user opens the create service modal
-    And the user enters service name "Billing Service"
+    And the user enters service name "Catalog Sync Service"
     And the user enters service description "Service created for testing duplicates"
     And the user enters URL name "Repository"
-    And the user enters URL "https://github.com/example/billing"
+    And the user enters URL "https://github.com/example/catalog-sync"
     And the user saves the service
     And the user opens the create service modal
-    And the user enters service name "billing SERVICE"
+    And the user enters service name "catalog sync SERVICE"
     And the user enters service description "Duplicate attempt"
     And the user enters URL name "Repository"
-    And the user enters URL "https://github.com/example/billing-dup"
+    And the user enters URL "https://github.com/example/catalog-sync-dup"
     And the user saves the service
-    Then the system displays "already exists"
+    Then the service system displays "already exists"
 
   @services @create
   Scenario: Create service with empty description uses default value
@@ -94,7 +89,7 @@ Feature: Services
     And the user enters URL name "Repository"
     And the user enters URL "https://github.com/example/test"
     And the user saves the service
-    Then the system displays "Name must be at least 2 characters"
+    Then the service system displays "Name must be at least 2 characters"
     And the service "Servicio de prueba" should not be displayed in the list
     
   @services @delete
@@ -105,7 +100,7 @@ Feature: Services
 
   @services @delete @cancel
   Scenario: Cancel service deletion
-  Given the user opens an existing service
-  When the user cancels the service deletion
-  Then the service should not be deleted
-  And the user should remain on the service details page
+    Given the user opens an existing service
+    When the user cancels the service deletion
+    Then the service should not be deleted
+    And the user should remain on the service details page

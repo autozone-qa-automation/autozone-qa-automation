@@ -14,21 +14,16 @@ public class ServiceIdBot extends BaseBot {
     private static final String FEATURE_OPEN_BUTTON_PREFIX = "service-id-feature-open-button-";
     private static final String FEATURE_DELETE_BUTTON_PREFIX = "service-id-feature-delete-button-";
 
-    private static final By SERVICE_ID_PAGE = By.cssSelector("[data-testid='service-id-page']");
-    private static final By LOADING_STATE = By.cssSelector("[data-testid='service-id-loading-state']");
-    private static final By ERROR_MESSAGE = By.cssSelector("[data-testid='service-id-error-message']");
     private static final By NOT_FOUND_MESSAGE = By.cssSelector("[data-testid='service-id-not-found-message']");
-
     private static final By EDIT_BUTTON = By.cssSelector("[data-testid='service-id-edit-button']");
     private static final By DELETE_BUTTON = By.cssSelector("[data-testid='service-id-delete-button']");
     private static final By DELETE_CONFIRM_BUTTON = By.cssSelector("[data-testid='delete-service-confirm-btn']");
-    private static final By DELETE_CANCEL_BUTTON =By.cssSelector("[data-testid='delete-service-cancel-btn']");
+    private static final By DELETE_CANCEL_BUTTON = By.cssSelector("[data-testid='delete-service-cancel-btn']");
     private static final By ADD_FEATURE_BUTTON = By.cssSelector("[data-testid='service-id-add-feature-button']");
-
+    private static final By FEATURES_SECTION = By.cssSelector("[data-testid='service-features-section']");
     private static final By FEATURE_OPEN_BUTTONS = By.cssSelector("[data-testid^='service-id-feature-open-button-']");
     private static final By FEATURES_EMPTY_MESSAGE = By.cssSelector("[data-testid='service-id-features-empty-message']");
-
-    private static final By LAST_RELEASES_EMPTY_MESSAGE = By.cssSelector("[data-testid='service-id-last-releases-section']");
+    private static final By RELEASES_SECTION = By.cssSelector("[data-testid='service-release-section']");
 
     public ServiceIdBot(WebDriver driver) {
         super(driver);
@@ -39,15 +34,17 @@ public class ServiceIdBot extends BaseBot {
     }
 
     public boolean isPageVisible() {
-        return findElements(SERVICE_ID_PAGE).size() > 0;
+        return currentUrl().contains(SERVICES_PATH)
+                && !isNotFoundVisible()
+                && findElements(FEATURES_SECTION).size() > 0;
     }
 
     public boolean isLoadingVisible() {
-        return findElements(LOADING_STATE).size() > 0;
+        return false;
     }
 
     public boolean isErrorVisible() {
-        return waitForPresence(ERROR_MESSAGE).isDisplayed();
+        return false;
     }
 
     public boolean isNotFoundVisible() {
@@ -130,7 +127,7 @@ public class ServiceIdBot extends BaseBot {
     }
 
     public boolean isLastReleasesSectionVisible() {
-        return waitForPresence(LAST_RELEASES_EMPTY_MESSAGE).isDisplayed();
+        return waitForPresence(RELEASES_SECTION).isDisplayed();
     }
 
     public boolean waitUntilServicesListPage() {

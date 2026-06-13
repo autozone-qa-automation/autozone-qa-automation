@@ -5,7 +5,7 @@ Feature: Feature edit
 
     @features @edit @success
     Scenario: Successful update of feature name and description
-        Given the user opens the feature details page for 1
+        Given the user opens the feature details page for 2
         When the user opens the edit feature modal
         And the user updates the feature name to "Gestión de Perfil de Usuario - Actualizado"
         And the user updates the feature description to "Permite a los usuarios actualizar su foto, correo y contraseña de forma segura."
@@ -16,7 +16,7 @@ Feature: Feature edit
 
     @features @edit @validation
     Scenario: Feature update fails when the name is empty
-        Given the user opens the feature details page for 1
+        Given the user opens the feature details page for 2
         And the user opens the edit feature modal
         And the user clears the feature name field
         When the user clicks save changes
