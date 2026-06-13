@@ -8,6 +8,7 @@ import org.openqa.selenium.WebDriver;
 import com.autozone.tests.e2e.bots.BaseBot;
 import com.autozone.tests.e2e.bots.FeatureBot;
 import com.autozone.tests.e2e.bots.LoginBot;
+import com.autozone.tests.e2e.bots.LogoutBot;
 import com.autozone.tests.e2e.bots.ReleaseDeleteBot;
 import com.autozone.tests.e2e.bots.ReleaseIdBot;
 import com.autozone.tests.e2e.bots.ReleasesBot;
@@ -18,16 +19,18 @@ import com.autozone.tests.e2e.bots.TestCasesBot;
 import com.autozone.tests.e2e.bots.TestCasesCreateBot;
 import com.autozone.tests.e2e.bots.TestCasesEditBot;
 import com.autozone.tests.e2e.bots.TestCaseModalBot;
+import com.autozone.tests.e2e.bots.UserCreateBot;
+import com.autozone.tests.e2e.bots.UserDeleteBot;
 import com.autozone.tests.e2e.bots.UserEditBot;
 import com.autozone.tests.e2e.bots.UsersBot;
 
 public class CucumberScenarioContext {
 
     private static final ThreadLocal<WebDriver> DRIVER = new ThreadLocal<>();
-    private static final ThreadLocal<Map<Class<?>, BaseBot>> BOTS =
-            ThreadLocal.withInitial(HashMap::new);
+    private static final ThreadLocal<Map<Class<?>, BaseBot>> BOTS = ThreadLocal.withInitial(HashMap::new);
 
-    private CucumberScenarioContext() {}
+    private CucumberScenarioContext() {
+    }
 
     public static void setDriver(WebDriver driver) {
         DRIVER.set(driver);
@@ -55,8 +58,7 @@ public class CucumberScenarioContext {
                     } catch (Exception e) {
                         throw new RuntimeException("Cannot create bot: " + botClass.getSimpleName(), e);
                     }
-                }
-        );
+                });
     }
 
     public static void clear() {
@@ -92,6 +94,7 @@ public class CucumberScenarioContext {
     public static TestCasesCreateBot getTestCasesCreateBot() {
         return getBot(TestCasesCreateBot.class);
     }
+
     public static TestCaseModalBot getTestCaseModalBot() {
         return getBot(TestCaseModalBot.class);
     }
@@ -108,6 +111,14 @@ public class CucumberScenarioContext {
         return getBot(UserEditBot.class);
     }
 
+    public static UserCreateBot getUserCreateBot() {
+        return getBot(UserCreateBot.class);
+    }
+
+    public static UserDeleteBot getUserDeleteBot() {
+        return getBot(UserDeleteBot.class);
+    }
+
     public static ReleasesBot getReleasesBot() {
         return getBot(ReleasesBot.class);
     }
@@ -119,4 +130,9 @@ public class CucumberScenarioContext {
     public static ReleaseIdBot getReleaseIdBot() {
         return getBot(ReleaseIdBot.class);
     }
+
+    public static LogoutBot getLogoutBot() {
+        return getBot(LogoutBot.class);
+    }
+
 }
