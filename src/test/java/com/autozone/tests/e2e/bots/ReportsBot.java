@@ -71,33 +71,86 @@ public class ReportsBot extends BaseBot {
     }
 
     public boolean isExportCsvButtonVisible() {
-        return findElements(EXPORT_CSV_BTN).size() > 0;
+        return !findElements(EXPORT_CSV_BTN).isEmpty();
     }
 
     public boolean isTableVisible() {
-        return findElements(REPORTS_TABLE).size() > 0;
+        return !findElements(REPORTS_TABLE).isEmpty();
     }
 
     public boolean isLoadingVisible() {
-        return findElements(LOADING_MESSAGE).size() > 0;
+        return !findElements(LOADING_MESSAGE).isEmpty();
     }
 
     public boolean isErrorVisible() {
-        return findElements(ERROR_MESSAGE).size() > 0;
+        return !findElements(ERROR_MESSAGE).isEmpty();
     }
 
     public boolean isRecordsSummaryVisible() {
-        return findElements(RECORDS_SUMMARY).size() > 0;
+        return !findElements(RECORDS_SUMMARY).isEmpty();
     }
 
     public boolean isSelectAllCheckboxVisible() {
         return waitForPresence(SELECT_ALL_CHECKBOX).isDisplayed();
     }
 
-    // --- Acciones ---
+    // --- Acciones generales ---
 
     public void clickGenerateReport() {
         waitForPresence(GENERATE_BTN).click();
+    }
+
+    // --- Filtros ---
+
+    public void selectService(String serviceName) {
+        waitForPresence(SERVICE_SELECT).click();
+        By option = By.xpath(
+            "//*[contains(@class,'mantine-Select-option') and normalize-space()='" + serviceName + "']"
+        );
+        waitForPresence(option).click();
+    }
+
+    public void clearServiceFilter() {
+        By clearBtn = By.cssSelector("[data-testid='reports-service-select'] [aria-label='Clear']");
+        List<WebElement> buttons = findElements(clearBtn);
+        if (!buttons.isEmpty()) {
+            buttons.get(0).click();
+        }
+    }
+
+    public void enterTags(String tags) {
+        WebElement input = waitForPresence(TAGS_INPUT);
+        input.clear();
+        input.sendKeys(tags);
+    }
+
+    // Retorna el nombre del servicio de la primera fila visible en la tabla.
+    public String getFirstAvailableServiceName() {
+        List<String> ids = getVisibleReleaseIds();
+        if (ids.isEmpty()) return null;
+        return getReleaseService(ids.get(0));
+    }
+
+    // --- Selección de filas y exportación ---
+
+    public void clickRowCheckbox(int index) {
+        By locator = By.cssSelector("[data-testid='report-row-checkbox-" + index + "']");
+        waitForPresence(locator).click();
+    }
+
+    public void clickSelectAll() {
+        waitForPresence(SELECT_ALL_CHECKBOX).click();
+    }
+
+    public void clickExportCsv() {
+        waitForPresence(EXPORT_CSV_BTN).click();
+    }
+
+    public boolean isExportCsvButtonDisabled() {
+        WebElement btn = waitForPresence(EXPORT_CSV_BTN);
+        return btn.getAttribute("disabled") != null
+            || "true".equals(btn.getAttribute("aria-disabled"))
+            || btn.getAttribute("data-disabled") != null;
     }
 
     // --- Lectura de datos de la tabla ---

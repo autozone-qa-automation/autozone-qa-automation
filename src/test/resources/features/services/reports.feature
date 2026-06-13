@@ -31,3 +31,52 @@ Feature: Reports
         Given the user opens the reports page
         When the user clicks generate report
         Then the export CSV button should be visible
+
+    @reports @filter
+    Scenario: ST-RP-01 - Filtering reports by service shows only matching results
+        Given the user opens the reports page
+        When the user clicks generate report
+        And the user filters by the service of the first available result
+        And the user clicks generate report
+        Then the reports table should be visible
+        And all visible results belong to the filtered service
+
+    @reports @export @csv
+    Scenario: ST-RP-02 - Export CSV with selected releases downloads a file
+        Given the user opens the reports page
+        When the user clicks generate report
+        And the user selects the first report row checkbox
+        And the user triggers the CSV export
+        Then a CSV file should be downloaded to the configured directory
+
+    @reports @export @csv
+    Scenario: ST-RP-03 - Downloaded CSV file contains the required headers
+        Given the user opens the reports page
+        When the user clicks generate report
+        And the user selects the first report row checkbox
+        And the user triggers the CSV export
+        Then the CSV file should contain the required headers
+
+    @reports @export @csv
+    Scenario: ST-RP-04 - CSV with multiple selected releases contains all of them
+        Given the user opens the reports page
+        When the user clicks generate report
+        And the user selects all report rows
+        And the user triggers the CSV export
+        Then the CSV file should contain multiple release records
+
+    @reports @export @csv
+    Scenario: ST-RP-05 - CSV contains service, feature and test case columns
+        Given the user opens the reports page
+        When the user clicks generate report
+        And the user selects the first report row checkbox
+        And the user triggers the CSV export
+        Then the CSV file should include service, feature and test case columns
+
+    @reports @export @csv
+    Scenario: ST-RP-06 - Export without selecting releases does not download a file
+        Given the user opens the reports page
+        When the user clicks generate report
+        And the user does not select any release
+        And the user triggers the CSV export
+        Then the system should not download any CSV file
