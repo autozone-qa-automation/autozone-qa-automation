@@ -7,14 +7,16 @@ import org.openqa.selenium.WebDriver;
 
 import com.autozone.tests.e2e.bots.BaseBot;
 import com.autozone.tests.e2e.bots.FeatureBot;
+import com.autozone.tests.e2e.bots.FeatureDetailBot;
+import com.autozone.tests.e2e.bots.FeaturesBot;
 import com.autozone.tests.e2e.bots.LoginBot;
+import com.autozone.tests.e2e.bots.LogoutBot;
 import com.autozone.tests.e2e.bots.ReleaseCreateBot;
 import com.autozone.tests.e2e.bots.ReleaseDeleteBot;
-import com.autozone.tests.e2e.bots.ReleaseStatusBot;
-import com.autozone.tests.e2e.bots.LogoutBot;
-import com.autozone.tests.e2e.bots.ReleaseDeleteBot;
 import com.autozone.tests.e2e.bots.ReleaseIdBot;
+import com.autozone.tests.e2e.bots.ReleaseStatusBot;
 import com.autozone.tests.e2e.bots.ReleasesBot;
+import com.autozone.tests.e2e.bots.ReportsBot;
 import com.autozone.tests.e2e.bots.ServiceEditBot;
 import com.autozone.tests.e2e.bots.ServiceIdBot;
 import com.autozone.tests.e2e.bots.ServicesBot;
@@ -25,10 +27,7 @@ import com.autozone.tests.e2e.bots.TestCaseModalBot;
 import com.autozone.tests.e2e.bots.UserCreateBot;
 import com.autozone.tests.e2e.bots.UserDeleteBot;
 import com.autozone.tests.e2e.bots.UserEditBot;
-import com.autozone.tests.e2e.bots.ReportsBot;
 import com.autozone.tests.e2e.bots.UsersBot;
-import com.autozone.tests.e2e.bots.FeaturesBot;
-import com.autozone.tests.e2e.bots.FeatureDetailBot;
 
 public class CucumberScenarioContext {
 
@@ -67,11 +66,13 @@ public class CucumberScenarioContext {
                 }
         );
     }
+
     public static void clear() {
         BOTS.remove();
         DRIVER.remove();
     }
 
+    // Convenience methods (optional but useful)
     public static ServicesBot getServicesBot() {
         return getBot(ServicesBot.class);
     }
@@ -120,12 +121,12 @@ public class CucumberScenarioContext {
         return getBot(UsersBot.class);
     }
 
-    public static UserEditBot getUserEditBot() {
-        return getBot(UserEditBot.class);
-    }
-
     public static UserCreateBot getUserCreateBot() {
         return getBot(UserCreateBot.class);
+    }
+
+    public static UserEditBot getUserEditBot() {
+        return getBot(UserEditBot.class);
     }
 
     public static UserDeleteBot getUserDeleteBot() {
@@ -159,5 +160,4 @@ public class CucumberScenarioContext {
     public static ReportsBot getReportsBot() {
         return getBot(ReportsBot.class);
     }
-
 }
