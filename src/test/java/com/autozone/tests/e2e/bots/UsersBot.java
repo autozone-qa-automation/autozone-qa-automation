@@ -18,7 +18,10 @@ public class UsersBot extends BaseBot {
     private static final By USER_ROW = By.cssSelector("table tbody tr");
     private static final By EDIT_BUTTON = By.cssSelector("[data-testid='user-edit-button']");
     private static final By NEW_USER_BUTTON = By.cssSelector("[data-testid='user-create-open-btn']");
-
+    private static final By USERS_TABLE = By.tagName("table");
+    private static final By ROLE_FILTER_INPUT = By.cssSelector("input[role='combobox']");
+    private static final By ROLE_FILTER_OPTIONS = By.cssSelector("[role='option']");
+  
     public UsersBot(WebDriver driver) {
         super(driver);
     }
@@ -41,6 +44,31 @@ public class UsersBot extends BaseBot {
         return rows.get(0).getText();
     }
 
+    // ── Métodos nuevos para ST-US-10 y ST-US-11 ──────────────────
+
+    public boolean isTableVisible() {
+        return waitForPresence(USERS_TABLE).isDisplayed();
+    }
+
+    public boolean hasUsers() {
+        waitUntilListReady();
+        return !findElements(USER_ROW).isEmpty();
+    }
+
+    public void filterByRole(String roleLabel) {
+        waitForPresence(ROLE_FILTER_INPUT).click();
+        List<WebElement> options = waitForAllPresent(ROLE_FILTER_OPTIONS);
+        options.stream()
+                .filter(o -> o.getText().trim().equalsIgnoreCase(roleLabel))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException(
+                        "Role option not found in filter: " + roleLabel))
+                .click();
+        waitUntilListReady();
+    }
+
+    public String getSelectedRoleFilter() {
+        return waitForPresence(ROLE_FILTER_INPUT).getAttribute("value");
     public void clickNewUser() {
         waitForPresence(NEW_USER_BUTTON).click();
     }
