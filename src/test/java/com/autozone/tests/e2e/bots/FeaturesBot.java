@@ -18,6 +18,7 @@ public class FeaturesBot extends BaseBot {
     private static final By EMPTY_STATE = By.cssSelector("[data-testid='features-empty-message']");
     private static final By FEATURE_ITEMS = By.cssSelector("[data-testid^='feature-item-']");
     private static final By SERVICE_OPTIONS = By.cssSelector("[data-combobox-option]");
+    private static final By NEW_FEATURE_BUTTON = By.xpath("//button[contains(normalize-space(), 'New Feature')]");
 
     public FeaturesBot(WebDriver driver) {
         super(driver);
@@ -153,7 +154,37 @@ public class FeaturesBot extends BaseBot {
         return findElements(By.xpath("//*[contains(text(), '" + text + "')]")).size() > 0;
     }
 
+    public boolean hasFeatureNumber(String featureId) {
+        String text = waitForPresence(
+            By.cssSelector("[data-testid='feature-number-" + featureId + "']")
+        ).getText();
+        return !text.trim().isEmpty();
+    }
+
+    public boolean isNewFeatureButtonVisible() {
+        return findElements(NEW_FEATURE_BUTTON).size() > 0;
+    }
+
     public void openFeatureById(String featureId) {
         openPath("/features/" + featureId);
+    }
+
+    public boolean selectFirstEmptyService() {
+        waitForPresence(SERVICE_SELECTOR).click();
+        wait.until(driver -> !driver.findElements(SERVICE_OPTIONS).isEmpty());
+        try { Thread.sleep(500); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+
+        List<WebElement> options = findElements(SERVICE_OPTIONS);
+        for (WebElement option : options) {
+            String name = option.getText().trim();
+            if (name.equals("All")) continue;
+            option.click();
+            try { Thread.sleep(800); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+            if (!findElements(EMPTY_STATE).isEmpty()) return true;
+            waitForPresence(SERVICE_SELECTOR).click();
+            wait.until(driver -> !driver.findElements(SERVICE_OPTIONS).isEmpty());
+            try { Thread.sleep(500); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        }
+        return false;
     }
 }

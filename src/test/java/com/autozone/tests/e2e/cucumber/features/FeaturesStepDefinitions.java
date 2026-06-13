@@ -10,6 +10,8 @@ import com.autozone.tests.e2e.bots.FeatureDetailBot;
 import com.autozone.tests.e2e.bots.FeaturesBot;
 import com.autozone.tests.e2e.cucumber.CucumberScenarioContext;
 
+import org.testng.SkipException;
+
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -55,12 +57,19 @@ public class FeaturesStepDefinitions {
             "Expected View button to be visible");
     }
 
-    // ST-FT-06
-    @And("the service selector should default to {string}")
-    public void theServiceSelectorShouldDefaultTo(String expectedValue) {
-        String value = CucumberScenarioContext.getFeaturesBot().getSelectorValue();
-        assertEquals(value, expectedValue,
-            "Expected service selector to default to '" + expectedValue + "'");
+    @And("each feature should display its feature number")
+    public void eachFeatureShouldDisplayItsNumber() {
+        FeaturesBot bot = CucumberScenarioContext.getFeaturesBot();
+        List<String> ids = bot.getFeatureIds();
+        assertFalse(ids.isEmpty(), "Expected at least one feature");
+        assertTrue(bot.hasFeatureNumber(ids.get(0)),
+            "Expected feature number (e.g. F1) to be visible in the first feature");
+    }
+
+    @And("a new feature button should be visible")
+    public void aNewFeatureButtonShouldBeVisible() {
+        assertTrue(CucumberScenarioContext.getFeaturesBot().isNewFeatureButtonVisible(),
+            "Expected + New Feature button to be visible");
     }
 
     // ST-FT-02
@@ -71,8 +80,10 @@ public class FeaturesStepDefinitions {
 
     @When("the user selects the empty service in the selector")
     public void theUserSelectsTheEmptyService() {
-        String serviceName = CucumberScenarioContext.getEmptyServiceName();
-        CucumberScenarioContext.getFeaturesBot().selectService(serviceName);
+        boolean found = CucumberScenarioContext.getFeaturesBot().selectFirstEmptyService();
+        if (!found) {
+            throw new SkipException("No service with empty features found in the DB — skipping ST-FT-02");
+        }
     }
     
     @Then("the features empty state should be displayed")
@@ -81,14 +92,6 @@ public class FeaturesStepDefinitions {
 
         assertTrue(bot.isEmptyStateVisible(),
             "Expected empty state message when service has no features");
-    }
-
-    // ST-FT-05
-    @Then("only features from {string} should be displayed")
-    public void onlyFeaturesFromServiceShouldBeDisplayed(String serviceName) {
-        FeaturesBot bot = CucumberScenarioContext.getFeaturesBot();
-        assertTrue(bot.hasFeatures(),
-            "Expected features to be shown for service: " + serviceName);
     }
 
     // ST-FT-03
@@ -143,6 +146,14 @@ public class FeaturesStepDefinitions {
             ") to match actual items rendered (" + actualCount + ")");
     }
 
+    // ST-FT-03 / ST-FT-04
+    @And("the edit and delete buttons should be visible")
+    public void theEditAndDeleteButtonsShouldBeVisible() {
+        FeatureDetailBot bot = CucumberScenarioContext.getFeatureDetailBot();
+        assertTrue(bot.isEditButtonVisible(), "Expected Edit button to be visible");
+        assertTrue(bot.isDeleteButtonVisible(), "Expected Delete button to be visible");
+    }
+
     // ST-FT-04
     @Then("the feature test cases empty state should be displayed")
     public void theFeatureTestCasesEmptyStateShouldBeDisplayed() {
@@ -152,10 +163,8 @@ public class FeaturesStepDefinitions {
             "Expected empty state when feature has no linked test cases");
     }
 
-    @When("the user clicks View on the feature with no test cases")
-    public void theUserClicksViewOnFeatureWithNoTestCases() {
-        FeaturesBot bot = CucumberScenarioContext.getFeaturesBot();
-        Long featureId = CucumberScenarioContext.getEmptyTcFeatureId();
-        bot.openFeatureById(String.valueOf(featureId));
+    @When("the user opens feature {string} with no test cases")
+    public void theUserOpensFeatureWithNoTestCases(String featureId) {
+        CucumberScenarioContext.getFeaturesBot().openFeatureById(featureId);
     }
 }

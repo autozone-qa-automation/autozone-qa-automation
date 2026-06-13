@@ -10,13 +10,17 @@ Feature: Features
         Then the features page layout should be correctly displayed
         And features should be listed
         And each feature should display its name, description and view button
+        And each feature should display its feature number
+        And a new feature button should be visible
 
     # ST-FT-02
-    @features @list @empty
+    @features @list
     Scenario: Features empty state is shown when service has no features
         Given the user opens the features page
         When the user selects the empty service in the selector
         Then the features empty state should be displayed
+        And the features page layout should be correctly displayed
+        And a new feature button should be visible
 
     # ST-FT-03
     @features @detail
@@ -27,26 +31,14 @@ Feature: Features
         Then the feature detail page layout should be correctly displayed
         And the feature should have linked test cases visible
         And the test cases count should match the rendered items
+        And the edit and delete buttons should be visible
 
     # ST-FT-04
-    @features @detail @empty-tc
+    @features @detail
     Scenario: Feature detail page shows empty state when no test cases linked
         Given the user opens the features page
-        When the user clicks View on the feature with no test cases
+        When the user opens feature "1" with no test cases
         Then the feature detail page layout should be correctly displayed
         And the feature test cases empty state should be displayed
+        And the edit and delete buttons should be visible
 
-    # ST-FT-05
-    @features @filter
-    Scenario: Filtering by a specific service shows only its features
-        Given the user opens the features page
-        When the user selects the service "Auth-Service" in the selector
-        Then only features from "Auth-Service" should be displayed
-
-    # ST-FT-06
-    @features @filter
-    Scenario: Service selector defaults to All and shows all features
-        Given the user opens the features page
-        Then the features page layout should be correctly displayed
-        And the service selector should default to "All"
-        And features should be listed

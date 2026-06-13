@@ -17,6 +17,8 @@ public class FeatureDetailBot extends BaseBot {
     private static final By TC_EMPTY_STATE = By.cssSelector("[data-testid='feature-detail-testcases-empty-state']");
     private static final By TC_ITEMS = By.cssSelector("[data-testid^='linked-tc-item-']");
     private static final By ACCORDION_CONTROL = By.cssSelector("button[data-accordion-control]");
+    private static final By EDIT_BUTTON = By.cssSelector("[data-testid='feature-detail-edit-button']");
+    private static final By DELETE_BUTTON = By.cssSelector("[data-testid='feature-detail-delete-trigger-button']");
 
     public FeatureDetailBot(WebDriver driver) {
         super(driver);
@@ -113,6 +115,14 @@ public class FeatureDetailBot extends BaseBot {
         } catch (Exception e) {
             return true;
         }
+    }
+
+    public boolean isEditButtonVisible() {
+        return findElements(EDIT_BUTTON).size() > 0;
+    }
+
+    public boolean isDeleteButtonVisible() {
+        return findElements(DELETE_BUTTON).size() > 0;
     }
 
     public String getCurrentUrl() {
