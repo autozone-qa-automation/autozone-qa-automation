@@ -39,4 +39,8 @@ public class WaitSupport {
     public static boolean waitForAbsence(WebDriverWait wait, By locator) {
         return wait.until(ExpectedConditions.invisibilityOfElementLocated(locator));
     }
+
+    public static WebElement waitForClickable(WebDriverWait wait, By locator) {
+        return wait.until(ExpectedConditions.elementToBeClickable(locator));
+    }
 }

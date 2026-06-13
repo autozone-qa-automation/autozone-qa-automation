@@ -70,6 +70,11 @@ public class ReleasesBot extends BaseBot {
         waitForPresence(DRAFT_FILTER_BUTTON).click();
     }
 
+    public void filterByStatus(String status) {
+        By filterButton = By.cssSelector("[data-testid='releases-filter-button-" + status.toLowerCase() + "']");
+        waitForPresence(filterButton).click();
+    }
+
     public String openFirstRelease() {
         List<WebElement> cards = waitForAllPresent(RELEASE_CARDS_ALL);
         WebElement firstCard = cards.get(0);
