@@ -28,7 +28,12 @@ public class TestCasesBot extends BaseBot {
     }
 
     public void openList() {
-        openPath(LIST_PATH);
+        String currentUrl = driver.getCurrentUrl();
+        if (currentUrl.contains("releases")) {
+            driver.get(currentUrl.replace("releases", "test-cases"));
+        } else {
+            openPath(LIST_PATH);
+        }
     }
 
     public boolean isListTitleVisible() {
