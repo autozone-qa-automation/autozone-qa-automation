@@ -190,8 +190,15 @@ public class UserCreateBot extends BaseBot {
     }
 
     public boolean hasInvalidEmailFormatError() {
-        String pageText = driver.findElement(By.tagName("body")).getText();
-        return pageText.contains("Valid email required");
+        try {
+            return new WebDriverWait(driver, Duration.ofSeconds(5))
+                    .until(d -> {
+                        String text = d.findElement(By.tagName("body")).getText();
+                        return text.contains("Valid email required");
+                    });
+        } catch (TimeoutException e) {
+            return false;
+        }
     }
 
     public boolean isNewUserInList(String name, String email) {
