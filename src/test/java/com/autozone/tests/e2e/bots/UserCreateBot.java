@@ -91,7 +91,12 @@ public class UserCreateBot extends BaseBot {
     }
 
     public void setEmail(String value) {
-        clearAndType(EMAIL_INPUT, value);
+        WebElement element = waitForPresence(EMAIL_INPUT);
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].scrollIntoView({block: 'center'});", element);
+        ((JavascriptExecutor) driver).executeScript(
+                "const el = arguments[0]; const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; nativeInputValueSetter.call(el, arguments[1]); el.dispatchEvent(new Event('input', { bubbles: true }));",
+                element, value);
     }
 
     public void setPassword(String value) {
@@ -200,8 +205,18 @@ public class UserCreateBot extends BaseBot {
             return new WebDriverWait(driver, Duration.ofSeconds(5))
                     .until(d -> {
                         String text = d.findElement(By.tagName("body")).getText();
-                        return text.contains("Valid email required")
-                                || text.contains("Invalid email address");
+                        if (text.contains("Valid email required")
+                                || text.contains("Invalid email address")) {
+                            return true;
+                        }
+                        // Check Mantine error elements directly
+                        List<WebElement> errors = d.findElements(By.cssSelector(".mantine-InputWrapper-error"));
+                        for (WebElement err : errors) {
+                            if (err.isDisplayed()) {
+                                return true;
+                            }
+                        }
+                        return false;
                     });
         } catch (TimeoutException e) {
             debugPageText();
