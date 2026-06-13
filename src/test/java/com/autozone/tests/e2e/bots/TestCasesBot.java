@@ -46,7 +46,7 @@ public class TestCasesBot extends BaseBot {
 
         // Additional selectors used by older testcases scenarios
         private static final By VIEW_BUTTONS =
-            By.cssSelector("[data-testid='view-button']");
+            By.cssSelector("[data-testid^='test-case-view-button-']");
 
         private static final By EMPTY_MESSAGE =
             By.cssSelector("[data-testid='empty-testcases-message']");
@@ -57,6 +57,12 @@ public class TestCasesBot extends BaseBot {
 
     public void openList() {
         openPath(LIST_PATH);
+        try {
+            wait.until(driver -> driver.getCurrentUrl().contains(LIST_PATH));
+        } catch (Exception e) {
+            openPath(LIST_PATH);
+            wait.until(driver -> driver.getCurrentUrl().contains(LIST_PATH));
+        }
     }
 
     public boolean isListTitleVisible() {
