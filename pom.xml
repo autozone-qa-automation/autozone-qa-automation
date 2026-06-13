@@ -50,8 +50,6 @@
             <artifactId>webdrivermanager</artifactId>
             <version>5.8.0</version>
         </dependency>
-
-        <!-- Cucumber + JUnit Platform: API integration tests (see src/test/java/com/autozone/integration) -->
         <dependency>
             <groupId>io.cucumber</groupId>
             <artifactId>cucumber-junit-platform-engine</artifactId>
@@ -65,8 +63,6 @@
             <version>${junit-platform.version}</version>
             <scope>test</scope>
         </dependency>
-
-        <!-- Jackson: serialize/deserialize ServicesVO/UrlVO request and response bodies -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>

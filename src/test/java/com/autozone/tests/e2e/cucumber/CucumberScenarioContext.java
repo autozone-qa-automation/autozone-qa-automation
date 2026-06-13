@@ -8,6 +8,7 @@ import org.openqa.selenium.WebDriver;
 import com.autozone.tests.e2e.bots.BaseBot;
 import com.autozone.tests.e2e.bots.FeatureBot;
 import com.autozone.tests.e2e.bots.LoginBot;
+import com.autozone.tests.e2e.bots.LogoutBot;
 import com.autozone.tests.e2e.bots.ReleaseDeleteBot;
 import com.autozone.tests.e2e.bots.ReleaseIdBot;
 import com.autozone.tests.e2e.bots.ReleasesBot;
@@ -26,10 +27,10 @@ import com.autozone.tests.e2e.bots.UsersBot;
 public class CucumberScenarioContext {
 
     private static final ThreadLocal<WebDriver> DRIVER = new ThreadLocal<>();
-    private static final ThreadLocal<Map<Class<?>, BaseBot>> BOTS =
-            ThreadLocal.withInitial(HashMap::new);
+    private static final ThreadLocal<Map<Class<?>, BaseBot>> BOTS = ThreadLocal.withInitial(HashMap::new);
 
-    private CucumberScenarioContext() {}
+    private CucumberScenarioContext() {
+    }
 
     public static void setDriver(WebDriver driver) {
         DRIVER.set(driver);
@@ -57,8 +58,7 @@ public class CucumberScenarioContext {
                     } catch (Exception e) {
                         throw new RuntimeException("Cannot create bot: " + botClass.getSimpleName(), e);
                     }
-                }
-        );
+                });
     }
 
     public static void clear() {
@@ -94,6 +94,7 @@ public class CucumberScenarioContext {
     public static TestCasesCreateBot getTestCasesCreateBot() {
         return getBot(TestCasesCreateBot.class);
     }
+
     public static TestCaseModalBot getTestCaseModalBot() {
         return getBot(TestCaseModalBot.class);
     }
@@ -129,4 +130,9 @@ public class CucumberScenarioContext {
     public static ReleaseIdBot getReleaseIdBot() {
         return getBot(ReleaseIdBot.class);
     }
+
+    public static LogoutBot getLogoutBot() {
+        return getBot(LogoutBot.class);
+    }
+
 }
