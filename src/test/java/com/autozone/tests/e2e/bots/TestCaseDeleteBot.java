@@ -1,0 +1,68 @@
+package com.autozone.tests.e2e.bots;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+
+import com.autozone.tests.e2e.support.WaitSupport;
+
+public class TestCaseDeleteBot extends BaseBot {
+
+    private static final By DELETE_BUTTON = By.cssSelector("[data-testid='testcase-delete-btn']");
+    private static final By CONFIRM_MODAL = By.cssSelector("[data-testid='delete-confirm-modal']");
+    private static final By CONFIRM_BUTTON = By.cssSelector("[data-testid='confirm-delete-btn']");
+    private static final By CANCEL_BUTTON = By.cssSelector("[data-testid='cancel-delete-btn']");
+    private static final By TEST_CASES_TABLE = By.cssSelector("[data-testid='testcases-table']");
+    private static final By TEST_CASE_ROW = By.cssSelector("[data-testid='testcase-row']");
+
+    private static final String SUCCESS_MESSAGE = "Test case deleted successfully";
+    private static final By SUCCESS_NOTIFICATION =
+            By.xpath("//*[contains(normalize-space(.), '" + SUCCESS_MESSAGE + "')]");
+
+    private static final String NOT_FOUND_MESSAGE = "Test case does not exist or was already deleted";
+    private static final By ERROR_NOTIFICATION =
+            By.xpath("//*[contains(normalize-space(.), '" + NOT_FOUND_MESSAGE + "')]");
+
+    public TestCaseDeleteBot(WebDriver driver) {
+        super(driver);
+    }
+
+    public void clickDeleteButton() {
+        waitForPresence(DELETE_BUTTON).click();
+    }
+
+    public boolean isConfirmModalVisible() {
+        return findElements(CONFIRM_MODAL).size() > 0;
+    }
+
+    public void clickConfirmDelete() {
+        waitForPresence(CONFIRM_BUTTON).click();
+    }
+
+    public void clickCancelDelete() {
+        waitForPresence(CANCEL_BUTTON).click();
+    }
+
+    public boolean waitForSuccessNotification() {
+        return waitForText(SUCCESS_NOTIFICATION, SUCCESS_MESSAGE);
+    }
+
+    public boolean waitForErrorNotification() {
+        return waitForText(ERROR_NOTIFICATION, NOT_FOUND_MESSAGE);
+    }
+
+    public int getTestCasesCount() {
+        return findElements(TEST_CASE_ROW).size();
+    }
+
+    public boolean isTestCaseBoardVisible() {
+        return findElements(TEST_CASES_TABLE).size() > 0;
+    }
+
+    public void triggerInvalidDelete() {
+        waitForPresence(DELETE_BUTTON).click();
+    }
+
+    public boolean isConfirmModalClosed() {
+        return WaitSupport.waitForAbsence(wait, CONFIRM_MODAL);
+    }
+}
