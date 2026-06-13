@@ -8,10 +8,10 @@ import org.openqa.selenium.WebDriver;
 
 public class FeatureDetailBot extends BaseBot {
 
-    private static final By PAGE = By.cssSelector("[data-testid='feature-detail-page']");
-    private static final By TITLE = By.cssSelector("[data-testid='title-header-title']");
+    private static final By PAGE = By.cssSelector("[data-testid='feature-detail-container']");
+    private static final By TITLE = By.cssSelector("[data-testid='feature-detail-title']");
     private static final By BREADCRUMB = By.cssSelector("[data-testid='title-header-breadcrumbs']");
-    private static final By DESCRIPTION = By.cssSelector("[data-testid='feature-detail-description-text']");
+    private static final By DESCRIPTION = By.cssSelector("[data-testid='feature-description-text']");
     private static final By TC_COUNT = By.cssSelector("[data-testid='feature-detail-testcases-count']");
     private static final By TC_LIST = By.cssSelector("[data-testid='feature-detail-testcases-list']");
     private static final By TC_EMPTY_STATE = By.cssSelector("[data-testid='feature-detail-testcases-empty-state']");
@@ -59,7 +59,12 @@ public class FeatureDetailBot extends BaseBot {
     }
 
     public boolean isTestCasesEmptyStateVisible() {
-        return findElements(TC_EMPTY_STATE).size() > 0;
+        try {
+            wait.until(driver -> !driver.findElements(TC_EMPTY_STATE).isEmpty());
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean hasTestCases() {

@@ -15,7 +15,7 @@ Feature: Features
     @features @list @empty
     Scenario: Features empty state is shown when service has no features
         Given the user opens the features page
-        When the user selects the service "Orphan-Service" in the selector
+        When the user selects the empty service in the selector
         Then the features empty state should be displayed
 
     # ST-FT-03
@@ -45,8 +45,8 @@ Feature: Features
 
     # ST-FT-06
     @features @filter
-    Scenario: Service selector has no value selected by default
+    Scenario: Service selector defaults to All and shows all features
         Given the user opens the features page
         Then the features page layout should be correctly displayed
-        And the service selector should have no value selected by default
+        And the service selector should default to "All"
         And features should be listed

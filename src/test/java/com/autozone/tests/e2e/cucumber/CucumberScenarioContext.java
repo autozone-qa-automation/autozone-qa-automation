@@ -63,9 +63,9 @@ public class CucumberScenarioContext {
                     } catch (Exception e) {
                         throw new RuntimeException("Cannot create bot: " + botClass.getSimpleName(), e);
                     }
-                });
+                }
+        );
     }
-
     public static void clear() {
         BOTS.remove();
         DRIVER.remove();

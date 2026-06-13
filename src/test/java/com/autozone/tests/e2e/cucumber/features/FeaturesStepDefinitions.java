@@ -56,16 +56,22 @@ public class FeaturesStepDefinitions {
     }
 
     // ST-FT-06
-    @And("the service selector should have no value selected by default")
-    public void theServiceSelectorShouldHaveNoValueByDefault() {
+    @And("the service selector should default to {string}")
+    public void theServiceSelectorShouldDefaultTo(String expectedValue) {
         String value = CucumberScenarioContext.getFeaturesBot().getSelectorValue();
-        assertTrue(value == null || value.isEmpty(),
-            "Expected service selector to have no value selected by default");
+        assertEquals(value, expectedValue,
+            "Expected service selector to default to '" + expectedValue + "'");
     }
 
     // ST-FT-02
     @When("the user selects the service {string} in the selector")
     public void theUserSelectsTheService(String serviceName) {
+        CucumberScenarioContext.getFeaturesBot().selectService(serviceName);
+    }
+
+    @When("the user selects the empty service in the selector")
+    public void theUserSelectsTheEmptyService() {
+        String serviceName = CucumberScenarioContext.getEmptyServiceName();
         CucumberScenarioContext.getFeaturesBot().selectService(serviceName);
     }
     
@@ -149,7 +155,7 @@ public class FeaturesStepDefinitions {
     @When("the user clicks View on the feature with no test cases")
     public void theUserClicksViewOnFeatureWithNoTestCases() {
         FeaturesBot bot = CucumberScenarioContext.getFeaturesBot();
-        // navegar directo al feature 3 que sabemos que no tiene TCs
-        bot.openFeatureById("3");
+        Long featureId = CucumberScenarioContext.getEmptyTcFeatureId();
+        bot.openFeatureById(String.valueOf(featureId));
     }
 }

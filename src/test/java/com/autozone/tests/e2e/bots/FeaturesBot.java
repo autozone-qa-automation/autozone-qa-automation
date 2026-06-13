@@ -11,11 +11,11 @@ public class FeaturesBot extends BaseBot {
 
     private static final String FEATURES_PATH = "/features";
 
-    private static final By TITLE = By.cssSelector("[data-testid='title-header-title']");
+    private static final By TITLE = By.cssSelector("[data-testid='features-page-container'] h1");
     private static final By BREADCRUMB = By.cssSelector("[data-testid='title-header-breadcrumbs']");
     private static final By SERVICE_SELECTOR = By.cssSelector("[data-testid='features-service-selector']");
     private static final By FEATURES_LIST = By.cssSelector("[data-testid='features-list']");
-    private static final By EMPTY_STATE = By.cssSelector("[data-testid='features-empty-state']");
+    private static final By EMPTY_STATE = By.cssSelector("[data-testid='features-empty-message']");
     private static final By FEATURE_ITEMS = By.cssSelector("[data-testid^='feature-item-']");
     private static final By SERVICE_OPTIONS = By.cssSelector("[data-combobox-option]");
 
@@ -52,7 +52,12 @@ public class FeaturesBot extends BaseBot {
     }
 
     public boolean isEmptyStateVisible() {
-        return findElements(EMPTY_STATE).size() > 0;
+        try {
+            wait.until(driver -> !driver.findElements(EMPTY_STATE).isEmpty());
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean hasFeatures() {
@@ -99,9 +104,9 @@ public class FeaturesBot extends BaseBot {
         waitForPresence(SERVICE_SELECTOR).click();
     }
 
+    /** Select a service by its exact display name in the dropdown. */
     public void selectService(String serviceName) {
-        WebElement selector = waitForPresence(SERVICE_SELECTOR);
-        selector.click();
+        waitForPresence(SERVICE_SELECTOR).click();
 
         wait.until(driver -> !driver.findElements(SERVICE_OPTIONS).isEmpty());
 
@@ -115,8 +120,33 @@ public class FeaturesBot extends BaseBot {
         try { Thread.sleep(1000); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
     }
 
+    /**
+     * Select a service by its value attribute in the dropdown (used when the
+     * service name is dynamic and unknown at test-design time).
+     */
+    public void selectServiceByValue(String serviceId) {
+        waitForPresence(SERVICE_SELECTOR).click();
+
+        wait.until(driver -> !driver.findElements(SERVICE_OPTIONS).isEmpty());
+
+        try { Thread.sleep(500); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+
+        findElements(SERVICE_OPTIONS).stream()
+            .filter(o -> serviceId.equals(o.getAttribute("data-value"))
+                      || serviceId.equals(o.getAttribute("value")))
+            .findFirst()
+            .ifPresent(WebElement::click);
+
+        try { Thread.sleep(1000); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+    }
+
     public String getSelectorValue() {
-        return waitForPresence(SERVICE_SELECTOR).getAttribute("value");
+        WebElement selector = waitForPresence(SERVICE_SELECTOR);
+        WebElement target = selector.getTagName().equalsIgnoreCase("input")
+                ? selector
+                : selector.findElements(By.tagName("input")).stream().findFirst().orElse(selector);
+        String value = target.getDomProperty("value");
+        return value == null ? "" : value;
     }
 
     public boolean hasErrorText(String text) {
