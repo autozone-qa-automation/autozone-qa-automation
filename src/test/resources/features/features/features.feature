@@ -37,7 +37,7 @@ Feature: Features
     @features @detail
     Scenario: Feature detail page shows empty state when no test cases linked
         Given the user opens the features page
-        When the user opens feature "1" with no test cases
+        When the user finds and opens a feature with no test cases
         Then the feature detail page layout should be correctly displayed
         And the feature test cases empty state should be displayed
         And the edit and delete buttons should be visible

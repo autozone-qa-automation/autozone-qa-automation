@@ -1,10 +1,12 @@
 package com.autozone.tests.e2e.bots;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class FeatureDetailBot extends BaseBot {
 
@@ -64,6 +66,20 @@ public class FeatureDetailBot extends BaseBot {
         try {
             wait.until(driver -> !driver.findElements(TC_EMPTY_STATE).isEmpty());
             return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public boolean hasTestCasesEmptyStateQuick() {
+        try {
+            openAccordion();
+            // wait until the content settles: either empty state or TC items must appear
+            new WebDriverWait(driver, Duration.ofSeconds(5))
+                .until(d -> !d.findElements(TC_EMPTY_STATE).isEmpty()
+                         || !d.findElements(TC_ITEMS).isEmpty());
+            return !driver.findElements(TC_EMPTY_STATE).isEmpty()
+                && driver.findElements(TC_ITEMS).isEmpty();
         } catch (Exception e) {
             return false;
         }
