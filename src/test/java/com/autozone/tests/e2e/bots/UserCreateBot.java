@@ -189,14 +189,22 @@ public class UserCreateBot extends BaseBot {
                 || pageText.contains("Role is required");
     }
 
+    public void debugPageText() {
+        System.out.println("=== PAGE TEXT ===");
+        System.out.println(driver.findElement(By.tagName("body")).getText());
+        System.out.println("=== END PAGE TEXT ===");
+    }
+
     public boolean hasInvalidEmailFormatError() {
         try {
             return new WebDriverWait(driver, Duration.ofSeconds(5))
                     .until(d -> {
                         String text = d.findElement(By.tagName("body")).getText();
-                        return text.contains("Valid email required");
+                        return text.contains("Valid email required")
+                                || text.contains("Invalid email address");
                     });
         } catch (TimeoutException e) {
+            debugPageText();
             return false;
         }
     }
@@ -225,12 +233,12 @@ public class UserCreateBot extends BaseBot {
                 "arguments[0].scrollIntoView({block: 'center'});", element);
 
         new WebDriverWait(driver, Duration.ofSeconds(8))
-                .until(ExpectedConditions.elementToBeClickable(element));
+                .until(ExpectedConditions.elementToBeClickable(element)).click();
 
-        element.click();
-        element.sendKeys(Keys.CONTROL + "a");
-        element.sendKeys(Keys.DELETE);
-        element.sendKeys(value);
+        element.clear();
+        if (value != null && !value.isEmpty()) {
+            element.sendKeys(value);
+        }
     }
 
     private boolean matchesSpanishRole(String spanishLabel, String englishLabel) {

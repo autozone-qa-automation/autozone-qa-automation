@@ -26,6 +26,6 @@ Feature: User creation
         Given the user opens the users list page
         And the user opens the create user form
         When the user fills the create user form with valid data
-        And the user sets the email to "correosinroba.com"
+        And the user sets the email to "correosinroba"
         And the user submits the create user form
         Then the user should see an invalid email format error message
