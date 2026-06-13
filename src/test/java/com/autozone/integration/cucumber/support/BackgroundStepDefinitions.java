@@ -17,7 +17,6 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import java.io.IOException;
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -103,7 +102,7 @@ public class BackgroundStepDefinitions {
     }
 
     // No services exist yet - create one so the scenario has data to work with.
-    String name = "QA Fallback Service " + UUID.randomUUID();
+    String name = "QA-FALLBACK-SVC-1";
     ObjectNode body = objectMapper.createObjectNode();
     body.put("name", name);
     body.put("description", "Fallback service for integration tests");

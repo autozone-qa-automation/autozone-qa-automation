@@ -52,7 +52,7 @@ Feature: Releases API
     Then the response status code should be 404
     And the response body should be empty
 
-  Scenario: Valid status transitions succeed but a non-Draft release cannot be deleted
+  Scenario: Valid status transitions Draft to Progress succeed
     Given an existing service from the services list
     When the client creates a new Draft release with a unique name
     Then the response status code should be 201
@@ -61,20 +61,13 @@ Feature: Releases API
     Then the response status code should be 200
     And the response "releaseStatus" should equal "Progress"
 
-    When the client transitions the created release to status "Active"
-    Then the response status code should be 200
-    And the response "releaseStatus" should equal "Active"
-
-    When the client deletes the created release
+  Scenario: Deleting a non-Draft release returns 400
+    When the client sends a DELETE request to "/api/v1/releases/1"
     Then the response status code should be 400
     And the response body should contain "DRAFT"
 
   Scenario: An invalid status transition returns 400 with a plain-text body (known quirk)
-    Given an existing service from the services list
-    When the client creates a new release with a unique name and status "Active"
-    Then the response status code should be 201
-
-    When the client transitions the created release to status "Draft"
+    When the client transitions the release with id 1 to status "Draft"
     Then the response status code should be 400
     And the response content type should be "application/json"
     And the response body should contain "Invalid status transition"

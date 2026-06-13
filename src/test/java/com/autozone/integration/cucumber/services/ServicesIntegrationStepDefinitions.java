@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -14,7 +15,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Step definitions for the {@code @services} integration features.
@@ -25,6 +26,9 @@ import java.util.UUID;
  * services-crud and services-validation.
  */
 public class ServicesIntegrationStepDefinitions {
+
+  private static final long RUN_TAG = System.currentTimeMillis() % 10000;
+  private static final AtomicInteger counter = new AtomicInteger(0);
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -41,6 +45,18 @@ public class ServicesIntegrationStepDefinitions {
   @Before
   public void setUpClient() {
     apiClient = new ServicesApiClient(IntegrationConfig.getBaseUrl());
+  }
+
+  @After
+  public void cleanUpCreatedService() throws IOException, InterruptedException {
+    if (createdServiceId != 0) {
+      try {
+        apiClient.deleteService(IntegrationContext.getToken(), createdServiceId);
+      } catch (Exception ignored) {
+        // service may have been deleted by the scenario itself
+      }
+      createdServiceId = 0;
+    }
   }
 
   // ---------------------------------------------------------------------
@@ -140,7 +156,7 @@ public class ServicesIntegrationStepDefinitions {
 
   @When("the client creates a new service with a unique name")
   public void theClientCreatesANewServiceWithAUniqueName() throws IOException, InterruptedException {
-    createdServiceName = "QA Integration Service " + UUID.randomUUID();
+    createdServiceName = "QA-SVC-" + RUN_TAG + "-" + counter.incrementAndGet();
     createdServiceDescription = "Created by the Services API integration suite";
 
     IntegrationContext.setLastResponse(
