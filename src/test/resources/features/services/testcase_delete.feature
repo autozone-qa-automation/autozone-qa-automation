@@ -3,9 +3,6 @@ Feature: Test Case Deletion
     I want to delete existing test cases
     So that I can keep the test case board clean and up-to-date
 
-    Background:
-        Given the user has successfully logged in
-
     @testcases @delete @success @ST-TC-17
     Scenario: ST-TC-17 - Successful deletion of a Test Case
         Given the user is on the test cases page
