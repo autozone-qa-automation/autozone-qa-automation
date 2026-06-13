@@ -17,7 +17,7 @@ public class UserCreateStepDefinitions {
     public void theUserOpensTheCreateUserForm() {
         UserCreateBot userCreateBot = CucumberScenarioContext.getUserCreateBot();
         userCreateBot.openCreateForm();
-        assertTrue(userCreateBot.isFormVisible(),
+        assertTrue(userCreateBot.isModalVisible(),
                 "Expected the user creation form to be visible");
     }
 
@@ -68,7 +68,7 @@ public class UserCreateStepDefinitions {
 
     @Then("the modal should remain open")
     public void theModalShouldRemainOpen() {
-        assertTrue(CucumberScenarioContext.getUserCreateBot().isFormVisible(),
+        assertTrue(CucumberScenarioContext.getUserCreateBot().isModalVisible(),
                 "Expected the modal to remain open when validation fails");
     }
 
