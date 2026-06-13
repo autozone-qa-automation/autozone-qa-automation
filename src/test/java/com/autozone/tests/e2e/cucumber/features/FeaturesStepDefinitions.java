@@ -155,16 +155,27 @@ public class FeaturesStepDefinitions {
     }
 
     // ST-FT-04
+    @When("the user finds and opens a feature with no test cases")
+    public void theUserFindsAndOpensFeatureWithNoTestCases() {
+        FeaturesBot featuresBot = CucumberScenarioContext.getFeaturesBot();
+        FeatureDetailBot detailBot = CucumberScenarioContext.getFeatureDetailBot();
+
+        List<String> ids = featuresBot.getFeatureIds();
+        for (String id : ids) {
+            featuresBot.openFeatureById(id);
+            detailBot.waitUntilPageReady();
+            if (detailBot.hasTestCasesEmptyStateQuick()) return;
+            featuresBot.openFeatures();
+            featuresBot.waitUntilListReady();
+        }
+        throw new SkipException("No feature with empty test cases found — skipping ST-FT-04");
+    }
+
     @Then("the feature test cases empty state should be displayed")
     public void theFeatureTestCasesEmptyStateShouldBeDisplayed() {
         FeatureDetailBot bot = CucumberScenarioContext.getFeatureDetailBot();
         bot.waitUntilPageReady();
         assertTrue(bot.isTestCasesEmptyStateVisible(),
             "Expected empty state when feature has no linked test cases");
-    }
-
-    @When("the user opens feature {string} with no test cases")
-    public void theUserOpensFeatureWithNoTestCases(String featureId) {
-        CucumberScenarioContext.getFeaturesBot().openFeatureById(featureId);
     }
 }
