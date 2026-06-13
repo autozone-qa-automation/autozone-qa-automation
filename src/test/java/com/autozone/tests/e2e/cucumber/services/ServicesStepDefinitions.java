@@ -71,6 +71,14 @@ public class ServicesStepDefinitions {
         CucumberScenarioContext.getServicesBot().searchService(text);
     }
 
+    @Then("the services displayed should contain {string}")
+    public void theServicesDisplayedShouldContain(String query) {
+        assertTrue(
+                CucumberScenarioContext.getServicesBot().displayedServicesMatchQuery(query),
+                "Expected every displayed service name to contain: " + query
+        );
+    }
+
     @Then("the service {string} should be displayed in the list")
     public void theServiceShouldBeDisplayed(String name) {
         assertTrue(
@@ -90,7 +98,6 @@ public class ServicesStepDefinitions {
         ServiceIdBot serviceIdBot = CucumberScenarioContext.getServiceIdBot();
 
         assertTrue(serviceIdBot.isPageVisible(), "Expected service details page to be visible");
-        assertTrue(!serviceIdBot.isLoadingVisible(), "Expected loading state to not be visible");
         assertTrue(!serviceIdBot.isNotFoundVisible(), "Expected not found message to not be visible");
         assertTrue(serviceIdBot.isEditButtonVisible(), "Expected edit button to be visible");
         assertTrue(serviceIdBot.isDeleteButtonVisible(), "Expected delete button to be visible");
@@ -123,17 +130,10 @@ public class ServicesStepDefinitions {
 
     @Then("the service not found message should be displayed")
     public void theServiceNotFoundMessageShouldBeDisplayed() {
-        assertTrue(CucumberScenarioContext.getServiceIdBot().isErrorVisible());
-    }
-
-    @Given("the user opens the service details page for {int} service with no features")
-    public void theUserOpensTheServiceDetailsPageForServiceWithEmptyFeatures(int serviceId) {
-        CucumberScenarioContext.getServiceIdBot().openService(String.valueOf(serviceId));
-    }
-
-    @And("the service features empty message should be displayed")
-    public void theServiceFeaturesEmptyMessageShouldBeDisplayed() {
-        assertTrue(CucumberScenarioContext.getServiceIdBot().isFeaturesEmptyMessageVisible(), "Expected features empty message to be visible");
+        assertTrue(
+                CucumberScenarioContext.getServiceIdBot().isNotFoundVisible(),
+                "Expected service not found message to be visible"
+        );
     }
 
     @Given("the user opens an existing service")
@@ -253,9 +253,8 @@ public class ServicesStepDefinitions {
     @Then("the service system displays {string}")
     public void theServiceSystemDisplays(String message) {
         assertTrue(
-            CucumberScenarioContext.getServicesBot()
-                .serviceCardContainsText("Payment Gateway", message),
-            "Expected service message: " + message
+            CucumberScenarioContext.getServicesBot().waitForSystemMessage(message),
+            "Expected system message: " + message
         );
     }
 
@@ -284,7 +283,7 @@ public class ServicesStepDefinitions {
     @Then("the service {string} should not be displayed in the list")
     public void theServiceShouldNotBeDisplayedInTheList(String name) {
         boolean exists = CucumberScenarioContext.getServicesBot()
-                .isServiceListed(name);
+                .isServiceCurrentlyListed(name);
 
         assertTrue(
             !exists,

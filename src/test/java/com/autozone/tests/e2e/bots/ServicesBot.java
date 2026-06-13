@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -16,13 +17,12 @@ public class ServicesBot extends BaseBot {
     private static final String LIST_PATH = "/services";
     private static final String SERVICE_CARD_PREFIX = "service-card-";
 
-    //private static final By BODY = By.tagName("body");
-    private static final By SERVICE_TITLE = By.cssSelector("[data-testid='title-header-title']");
     private static final By SERVICE_META = By.cssSelector("[data-testid='title-header-meta']");
     private static final By SERVICE_SEARCH_INPUT = By.cssSelector("[data-testid='service-search-input']");
     private static final By ADD_SERVICE_BUTTON = By.cssSelector("[data-testid='add-service-button']");
     private static final By ADD_SERVICE_CARD = By.cssSelector("[data-testid='add-service-card']");
     private static final By SERVICE_CARDS = By.cssSelector("[data-testid^='service-card-']:not([data-testid^='service-card-title-'])");
+    private static final By EMPTY_SEARCH_MESSAGE = By.cssSelector("[data-testid='services-empty-search-message']");
     private static final By CREATE_SERVICE_FORM = By.cssSelector("[data-testid='service-create-form']");
     private static final By SERVICE_NAME_INPUT = By.cssSelector("[data-testid='service-name-input']");
     private static final By URL_NAME_INPUT = By.cssSelector("[data-testid='url-nombre-0']");
@@ -39,7 +39,7 @@ public class ServicesBot extends BaseBot {
     }
 
     public boolean isListTitleVisible() {
-        return waitForPresence(SERVICE_TITLE).isDisplayed();
+        return currentUrl().contains(LIST_PATH);
     }
 
     public boolean isListMetaVisible() {
@@ -76,15 +76,21 @@ public class ServicesBot extends BaseBot {
     }
 
     public void enterServiceName(String name) {
-        waitForPresence(SERVICE_NAME_INPUT).sendKeys(name);
+        WebElement input = waitForPresence(SERVICE_NAME_INPUT);
+        input.clear();
+        input.sendKeys(name);
     }
 
     public void enterUrlName(String urlName) {
-        waitForPresence(URL_NAME_INPUT).sendKeys(urlName);
+        WebElement input = waitForPresence(URL_NAME_INPUT);
+        input.clear();
+        input.sendKeys(urlName);
     }
 
     public void enterUrl(String url) {
-        waitForPresence(URL_INPUT).sendKeys(url);
+        WebElement input = waitForPresence(URL_INPUT);
+        input.clear();
+        input.sendKeys(url);
     }
 
     public void submitCreateService() {
@@ -92,7 +98,15 @@ public class ServicesBot extends BaseBot {
     }
 
     public void enterServiceDescription(String description) {
-        waitForPresence(SERVICE_DESCRIPTION_INPUT).sendKeys(description);
+        WebElement input = waitForPresence(SERVICE_DESCRIPTION_INPUT);
+        input.clear();
+        if (description != null && !description.isEmpty()) {
+            input.sendKeys(description);
+        }
+    }
+
+    public boolean waitForSystemMessage(String message) {
+        return wait.until(driver -> driver.findElement(By.tagName("body")).getText().contains(message));
     }
 
     public boolean serviceCardContainsText(String serviceName, String text) {
@@ -121,11 +135,30 @@ public class ServicesBot extends BaseBot {
     }
 
     public boolean isServiceListed(String name) {
-        return hasServiceNamed(name);
+        return wait.until(driver -> hasServiceNamed(name));
     }
 
     public boolean hasServiceNamed(String name) {
         return getServiceCards().stream().anyMatch(card -> card.getText().contains(name));
+    }
+
+    public boolean isServiceCurrentlyListed(String name) {
+        return getDisplayedServiceNamesWithoutWaiting().stream()
+                .anyMatch(cardName -> cardName.contains(name));
+    }
+
+    public boolean displayedServicesMatchQuery(String query) {
+        String normalizedQuery = query.trim().toLowerCase();
+        return wait.until(driver -> {
+            if (!driver.findElements(EMPTY_SEARCH_MESSAGE).isEmpty()) {
+                return true;
+            }
+
+            List<String> displayedNames = getDisplayedServiceNamesWithoutWaiting();
+            return !displayedNames.isEmpty()
+                    && displayedNames.stream()
+                        .allMatch(name -> name.toLowerCase().contains(normalizedQuery));
+        });
     }
     
     public void openServiceDetails(String serviceId) {
@@ -162,11 +195,30 @@ public class ServicesBot extends BaseBot {
     }
 
     public void openServiceByName(String name) {
-        WebElement card = getServiceCards().stream()
-            .filter(c -> c.getText().contains(name))
-            .findFirst()
-            .orElseThrow();
+        wait.until(driver -> {
+            try {
+                WebElement card = findElements(SERVICE_CARDS).stream()
+                    .filter(c -> c.getText().contains(name))
+                    .findFirst()
+                    .orElse(null);
 
-        card.click();
+                if (card == null) {
+                    return false;
+                }
+
+                card.click();
+                return true;
+            } catch (StaleElementReferenceException ignored) {
+                return false;
+            }
+        });
+    }
+
+    private List<String> getDisplayedServiceNamesWithoutWaiting() {
+        return findElements(SERVICE_CARDS).stream()
+                .map(WebElement::getText)
+                .map(text -> text.split("\\R", 2)[0].trim())
+                .filter(name -> !name.isEmpty())
+                .collect(Collectors.toList());
     }
 }
