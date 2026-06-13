@@ -34,4 +34,39 @@ public class UsersBot extends BaseBot {
         List<WebElement> rows = waitForAllPresent(USER_ROW);
         return rows.get(0).getText();
     }
+
+    // ── Métodos nuevos para ST-US-10 y ST-US-11 ──────────────────
+
+    private static final By USERS_TABLE = By.tagName("table");
+
+    private static final By ROLE_FILTER_INPUT =
+            By.cssSelector("input[role='combobox']");
+
+    private static final By ROLE_FILTER_OPTIONS =
+            By.cssSelector("[role='option']");
+
+    public boolean isTableVisible() {
+        return waitForPresence(USERS_TABLE).isDisplayed();
+    }
+
+    public boolean hasUsers() {
+        waitUntilListReady();
+        return !findElements(USER_ROW).isEmpty();
+    }
+
+    public void filterByRole(String roleLabel) {
+        waitForPresence(ROLE_FILTER_INPUT).click();
+        List<WebElement> options = waitForAllPresent(ROLE_FILTER_OPTIONS);
+        options.stream()
+                .filter(o -> o.getText().trim().equalsIgnoreCase(roleLabel))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException(
+                        "Role option not found in filter: " + roleLabel))
+                .click();
+        waitUntilListReady();
+    }
+
+    public String getSelectedRoleFilter() {
+        return waitForPresence(ROLE_FILTER_INPUT).getAttribute("value");
+    }
 }
