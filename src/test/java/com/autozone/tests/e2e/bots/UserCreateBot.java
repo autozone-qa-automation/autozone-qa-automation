@@ -1,0 +1,276 @@
+package com.autozone.tests.e2e.bots;
+
+import java.time.Duration;
+import java.util.List;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Keys;
+import org.openqa.selenium.TimeoutException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import com.autozone.tests.e2e.support.WaitSupport;
+
+public class UserCreateBot extends BaseBot {
+
+    private static final By OPEN_BUTTON = By.cssSelector("[data-testid='user-create-open-btn']");
+    private static final By CREATE_FORM = By.cssSelector("[data-testid='user-create-form']");
+    private static final By NAME_INPUT = By.cssSelector("[data-testid='user-name-input']");
+    private static final By LASTNAME_INPUT = By.cssSelector("[data-testid='user-lastname-input']");
+    private static final By EMAIL_INPUT = By.cssSelector("[data-testid='user-email-input']");
+    private static final By PASSWORD_INPUT = By.cssSelector("[data-testid='user-password-input']");
+    private static final By ROLE_SELECT = By.cssSelector("[data-testid='user-role-select']");
+    private static final By SUBMIT_BUTTON = By.cssSelector("[data-testid='user-submit-btn']");
+    private static final By CANCEL_BUTTON = By.cssSelector("[data-testid='user-cancel-btn']");
+    private static final By SUCCESS_NOTIFICATION =
+            By.xpath("//*[contains(normalize-space(.), 'User created successfully')]");
+    private static final By TABLE_ROW = By.cssSelector("[data-testid='users-table-row']");
+
+    private static final String DEFAULT_NAME = "Test";
+    private static final String DEFAULT_LAST_NAME = "User";
+    private static final String DEFAULT_EMAIL = "test.user@example.com";
+    private static final String DEFAULT_PASSWORD = "TestPass123";
+    private static final String DEFAULT_ROLE = "READ_ONLY";
+
+    public UserCreateBot(WebDriver driver) {
+        super(driver);
+    }
+
+    public void openCreateForm() {
+        waitForPresence(OPEN_BUTTON).click();
+        waitForPresence(CREATE_FORM);
+    }
+
+    public boolean isModalVisible() {
+        try {
+            new WebDriverWait(driver, Duration.ofSeconds(5))
+                    .until(ExpectedConditions.visibilityOfElementLocated(CREATE_FORM));
+            return true;
+        } catch (TimeoutException e) {
+            return false;
+        }
+    }
+
+    public boolean waitForModalToClose() {
+        return WaitSupport.waitForAbsence(wait, CREATE_FORM);
+    }
+
+    public String fillForm(String name, String lastName, String email, String password, String role) {
+        waitForPresence(CREATE_FORM);
+        String uniqueEmail = makeUnique(email);
+        setName(name);
+        setLastName(lastName);
+        setEmail(uniqueEmail);
+        setPassword(password);
+        selectRole(role);
+        return uniqueEmail;
+    }
+
+    public void fillWithValidData() {
+        fillForm(DEFAULT_NAME, DEFAULT_LAST_NAME, makeUnique(DEFAULT_EMAIL), DEFAULT_PASSWORD, DEFAULT_ROLE);
+    }
+
+    public void fillValidForm(String name, String lastName, String email, String password) {
+        waitForPresence(CREATE_FORM);
+        setName(name);
+        setLastName(lastName);
+        setEmail(email);
+        setPassword(password);
+        selectFirstRole();
+    }
+
+    public void setName(String value) {
+        clearAndType(NAME_INPUT, value);
+    }
+
+    public void setLastName(String value) {
+        clearAndType(LASTNAME_INPUT, value);
+    }
+
+    public void setEmail(String value) {
+        WebElement element = waitForPresence(EMAIL_INPUT);
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].scrollIntoView({block: 'center'});", element);
+        ((JavascriptExecutor) driver).executeScript(
+                "const el = arguments[0]; const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set; nativeInputValueSetter.call(el, arguments[1]); el.dispatchEvent(new Event('input', { bubbles: true }));",
+                element, value);
+    }
+
+    public void setPassword(String value) {
+        clearAndType(PASSWORD_INPUT, value);
+    }
+
+    public void selectFirstRole() {
+        WebElement select = waitForPresence(ROLE_SELECT);
+
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].scrollIntoView({block: 'center'});", select);
+
+        WebElement input = "input".equalsIgnoreCase(select.getTagName())
+                ? select
+                : select.findElement(By.cssSelector("input"));
+
+        new WebDriverWait(driver, Duration.ofSeconds(8))
+                .until(ExpectedConditions.elementToBeClickable(input));
+
+        input.click();
+
+        WebElement option = new WebDriverWait(driver, Duration.ofSeconds(20))
+                .until(driver -> {
+                    List<WebElement> options =
+                            driver.findElements(By.cssSelector("[data-combobox-option]"));
+                    for (WebElement candidate : options) {
+                        if (candidate.isDisplayed() && candidate.isEnabled()) {
+                            return candidate;
+                        }
+                    }
+                    return null;
+                });
+
+        option.click();
+    }
+
+    public void selectRole(String roleLabel) {
+        WebElement select = waitForPresence(ROLE_SELECT);
+
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].scrollIntoView({block: 'center'});", select);
+
+        WebElement input = "input".equalsIgnoreCase(select.getTagName())
+                ? select
+                : select.findElement(By.cssSelector("input"));
+
+        new WebDriverWait(driver, Duration.ofSeconds(8))
+                .until(ExpectedConditions.elementToBeClickable(input));
+
+        input.click();
+
+        WebElement option = new WebDriverWait(driver, Duration.ofSeconds(20))
+                .until(driver -> {
+                    List<WebElement> options =
+                            driver.findElements(By.cssSelector("[data-combobox-option]"));
+                    for (WebElement candidate : options) {
+                        if (candidate.isDisplayed() && candidate.isEnabled()
+                                && (candidate.getText().trim().equalsIgnoreCase(roleLabel)
+                                        || candidate.getText().trim().contains(roleLabel)
+                                        || matchesSpanishRole(roleLabel, candidate.getText().trim()))) {
+                            return candidate;
+                        }
+                    }
+                    return null;
+                });
+
+        option.click();
+    }
+
+    public void submit() {
+        WebElement button = waitForPresence(SUBMIT_BUTTON);
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].scrollIntoView({block: 'center'});", button);
+        button.click();
+    }
+
+    public void clickCancel() {
+        waitForPresence(CANCEL_BUTTON).click();
+    }
+
+    public boolean waitForSuccessNotification() {
+        return waitForText(SUCCESS_NOTIFICATION, "User created successfully");
+    }
+
+    public boolean hasSuccessNotification() {
+        return findElements(SUCCESS_NOTIFICATION).size() > 0;
+    }
+
+    public boolean hasValidationErrors() {
+        String pageText = driver.findElement(By.tagName("body")).getText();
+        return pageText.contains("Name is required")
+                || pageText.contains("Last name is required")
+                || pageText.contains("Valid email required")
+                || pageText.contains("Password is required")
+                || pageText.contains("Role is required");
+    }
+
+    public void debugPageText() {
+        System.out.println("=== PAGE TEXT ===");
+        System.out.println(driver.findElement(By.tagName("body")).getText());
+        System.out.println("=== END PAGE TEXT ===");
+    }
+
+    public boolean hasInvalidEmailFormatError() {
+        try {
+            return new WebDriverWait(driver, Duration.ofSeconds(5))
+                    .until(d -> {
+                        String text = d.findElement(By.tagName("body")).getText();
+                        if (text.contains("Valid email required")
+                                || text.contains("Invalid email address")) {
+                            return true;
+                        }
+                        // Check Mantine error elements directly
+                        List<WebElement> errors = d.findElements(By.cssSelector(".mantine-InputWrapper-error"));
+                        for (WebElement err : errors) {
+                            if (err.isDisplayed()) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    });
+        } catch (TimeoutException e) {
+            debugPageText();
+            return false;
+        }
+    }
+
+    public boolean isNewUserInList(String name, String email) {
+        List<WebElement> rows = waitForAllPresent(TABLE_ROW);
+        for (WebElement row : rows) {
+            if (row.getText().contains(name) && row.getText().contains(email)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static String makeUnique(String email) {
+        int atIndex = email.indexOf('@');
+        if (atIndex > 0) {
+            return email.substring(0, atIndex) + "+" + System.currentTimeMillis() + email.substring(atIndex);
+        }
+        return email;
+    }
+
+    private void clearAndType(By locator, String value) {
+        WebElement element = waitForPresence(locator);
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].scrollIntoView({block: 'center'});", element);
+
+        new WebDriverWait(driver, Duration.ofSeconds(8))
+                .until(ExpectedConditions.elementToBeClickable(element)).click();
+
+        element.clear();
+        if (value != null && !value.isEmpty()) {
+            element.sendKeys(value);
+        }
+    }
+
+    private boolean matchesSpanishRole(String spanishLabel, String englishLabel) {
+        switch (spanishLabel.toLowerCase()) {
+            case "usuario estándar":
+            case "usuario estandar":
+            case "estándar":
+            case "estandar":
+                return "READ_ONLY".equalsIgnoreCase(englishLabel);
+            case "administrador":
+            case "admin":
+                return "ADMIN".equalsIgnoreCase(englishLabel);
+            case "desarrollador":
+            case "developer":
+                return "DEV".equalsIgnoreCase(englishLabel);
+            default:
+                return false;
+        }
+    }
+}
