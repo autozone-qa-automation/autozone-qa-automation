@@ -12,6 +12,7 @@ import io.cucumber.java.en.When;
 public class UserCreateStepDefinitions {
 
     private String createdUserName;
+    private String createdUserEmail;
 
     @Given("the user opens the create user form")
     public void theUserOpensTheCreateUserForm() {
@@ -24,7 +25,7 @@ public class UserCreateStepDefinitions {
     @When("the user fills the create user form with name {string}, last name {string}, email {string}, password {string}, and role {string}")
     public void theUserFillsTheCreateUserForm(String name, String lastName, String email, String password, String role) {
         createdUserName = name + " " + lastName;
-        CucumberScenarioContext.getUserCreateBot().fillForm(name, lastName, email, password, role);
+        createdUserEmail = CucumberScenarioContext.getUserCreateBot().fillForm(name, lastName, email, password, role);
     }
 
     @When("the user fills the create user form with valid data")
@@ -56,7 +57,7 @@ public class UserCreateStepDefinitions {
 
     @Then("the new user should be reflected in the users list")
     public void theNewUserShouldBeReflectedInTheUsersList() {
-        assertTrue(CucumberScenarioContext.getUserCreateBot().isNewUserInList(createdUserName),
+        assertTrue(CucumberScenarioContext.getUserCreateBot().isNewUserInList(createdUserName, createdUserEmail),
                 "Expected the new user to appear in the users list");
     }
 

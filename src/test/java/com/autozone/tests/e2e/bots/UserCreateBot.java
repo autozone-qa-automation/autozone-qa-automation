@@ -58,17 +58,19 @@ public class UserCreateBot extends BaseBot {
         return WaitSupport.waitForAbsence(wait, CREATE_FORM);
     }
 
-    public void fillForm(String name, String lastName, String email, String password, String role) {
+    public String fillForm(String name, String lastName, String email, String password, String role) {
         waitForPresence(CREATE_FORM);
+        String uniqueEmail = makeUnique(email);
         setName(name);
         setLastName(lastName);
-        setEmail(email);
+        setEmail(uniqueEmail);
         setPassword(password);
         selectRole(role);
+        return uniqueEmail;
     }
 
     public void fillWithValidData() {
-        fillForm(DEFAULT_NAME, DEFAULT_LAST_NAME, DEFAULT_EMAIL, DEFAULT_PASSWORD, DEFAULT_ROLE);
+        fillForm(DEFAULT_NAME, DEFAULT_LAST_NAME, makeUnique(DEFAULT_EMAIL), DEFAULT_PASSWORD, DEFAULT_ROLE);
     }
 
     public void fillValidForm(String name, String lastName, String email, String password) {
@@ -192,14 +194,22 @@ public class UserCreateBot extends BaseBot {
         return pageText.contains("Valid email required");
     }
 
-    public boolean isNewUserInList(String name) {
+    public boolean isNewUserInList(String name, String email) {
         List<WebElement> rows = waitForAllPresent(TABLE_ROW);
         for (WebElement row : rows) {
-            if (row.getText().contains(name)) {
+            if (row.getText().contains(name) && row.getText().contains(email)) {
                 return true;
             }
         }
         return false;
+    }
+
+    private static String makeUnique(String email) {
+        int atIndex = email.indexOf('@');
+        if (atIndex > 0) {
+            return email.substring(0, atIndex) + "+" + System.currentTimeMillis() + email.substring(atIndex);
+        }
+        return email;
     }
 
     private void clearAndType(By locator, String value) {
