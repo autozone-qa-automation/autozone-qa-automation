@@ -69,6 +69,8 @@ public class UsersBot extends BaseBot {
 
     public String getSelectedRoleFilter() {
         return waitForPresence(ROLE_FILTER_INPUT).getAttribute("value");
+    }
+
     public void clickNewUser() {
         waitForPresence(NEW_USER_BUTTON).click();
     }
