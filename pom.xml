@@ -103,6 +103,24 @@
                 </plugins>
             </build>
         </profile>
+
+        <!--
+            E2E (Selenium + Cucumber + TestNG) profile.
+
+            By default, Surefire auto-detects the JUnit Platform provider
+            because cucumber-junit-platform-engine / junit-platform-suite are
+            on the test classpath (used by IntegrationCucumberTestSuite). That
+            provider does NOT run TestNG classes such as CucumberTest
+            (extends AbstractTestNGCucumberTests), so plain `mvn test` or
+            `mvn test -DsuiteXmlFile=testng.xml` reports "Tests run: 0" for
+            the E2E suite.
+
+            Activate this profile to force the TestNG provider so
+            testng.xml (and CucumberTest) actually run:
+
+                mvn clean test -Pe2e -DsuiteXmlFile=testng.xml \
+                    -Dcucumber.filter.tags="@users and @delete"
+        -->
         <profile>
             <id>e2e</id>
             <build>
@@ -111,6 +129,12 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <version>3.2.5</version>
+                        <configuration>
+                            <skipTests>false</skipTests>
+                            <includes>
+                                <include>**/CucumberTest.java</include>
+                            </includes>
+                        </configuration>
                         <dependencies>
                             <dependency>
                                 <groupId>org.apache.maven.surefire</groupId>
@@ -118,12 +142,6 @@
                                 <version>3.2.5</version>
                             </dependency>
                         </dependencies>
-                        <configuration>
-                            <skipTests>false</skipTests>
-                            <includes>
-                                <include>**/CucumberTest.java</include>
-                            </includes>
-                        </configuration>
                     </plugin>
                 </plugins>
             </build>
