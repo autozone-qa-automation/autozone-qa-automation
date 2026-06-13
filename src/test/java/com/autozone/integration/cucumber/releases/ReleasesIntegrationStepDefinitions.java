@@ -1,7 +1,7 @@
 package com.autozone.integration.cucumber.releases;
 
 import java.io.IOException;
-import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.autozone.integration.client.ReleasesApiClient;
 import com.autozone.integration.config.IntegrationConfig;
@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -24,6 +25,8 @@ import io.cucumber.java.en.When;
  * steps unique to {@code releases.feature}.
  */
 public class ReleasesIntegrationStepDefinitions {
+
+  private static final AtomicInteger counter = new AtomicInteger(0);
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -40,6 +43,18 @@ public class ReleasesIntegrationStepDefinitions {
   @Before
   public void setUpClient() {
     apiClient = new ReleasesApiClient(IntegrationConfig.getBaseUrl());
+  }
+
+  @After
+  public void cleanUpCreatedRelease() throws IOException, InterruptedException {
+    if (createdReleaseId != 0) {
+      try {
+        apiClient.deleteRelease(IntegrationContext.getToken(), createdReleaseId);
+      } catch (Exception ignored) {
+        // release may have been deleted by the scenario itself
+      }
+      createdReleaseId = 0;
+    }
   }
 
   // ---------------------------------------------------------------------
@@ -67,7 +82,7 @@ public class ReleasesIntegrationStepDefinitions {
 
   @When("the client creates a new Draft release with a unique name")
   public void theClientCreatesANewDraftReleaseWithAUniqueName() throws IOException, InterruptedException {
-    createdReleaseName = "QA Integration Release " + UUID.randomUUID();
+    createdReleaseName = "QA-INT-" + counter.incrementAndGet();
     createdReleaseDescription = "Created by the Releases API integration suite";
     createdReleaseVersion = "1.0.0";
     createdReleaseStatus = "Draft";
@@ -90,7 +105,7 @@ public class ReleasesIntegrationStepDefinitions {
 
   @When("the client creates a new Draft release with the tag {string}")
   public void theClientCreatesANewDraftReleaseWithTheTag(String tag) throws IOException, InterruptedException {
-    createdReleaseName = "QA Tagged Release " + UUID.randomUUID();
+    createdReleaseName = "QA-TAG-" + counter.incrementAndGet();
     createdReleaseDescription = "Created by the Releases API integration suite for tag filtering";
     createdReleaseVersion = "1.0.0";
     createdReleaseStatus = "Draft";
@@ -112,7 +127,7 @@ public class ReleasesIntegrationStepDefinitions {
 
   @When("the client creates a new release with a unique name and status {string}")
   public void theClientCreatesANewReleaseWithAUniqueNameAndStatus(String status) throws IOException, InterruptedException {
-    createdReleaseName = "QA Status Release " + UUID.randomUUID();
+    createdReleaseName = "QA-STS-" + counter.incrementAndGet();
     createdReleaseDescription = "Created by the Releases API integration suite for status transitions";
     createdReleaseVersion = "1.0.0";
     createdReleaseStatus = status;
